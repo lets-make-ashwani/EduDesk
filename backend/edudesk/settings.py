@@ -26,7 +26,10 @@ SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-qvif$r=h=r7moulh0x1k+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", "True") == "True"
 
-ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")
+ALLOWED_HOSTS = [host.strip() for host in os.environ.get("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",")]
+env_host = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+if env_host:
+    ALLOWED_HOSTS.append(env_host)
 
 
 # Application definition
