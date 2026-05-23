@@ -3,7 +3,7 @@ import Cookies from 'js-cookie';
 
 const api = axios.create({
     // baseURL: 'http://127.0.0.1:8000/api/',
-      baseURL: 'https://edudesk-api.onrender.com/',
+      baseURL: 'https://edudesk-api.onrender.com/api/',
 });
 
 api.interceptors.request.use((config) => {
