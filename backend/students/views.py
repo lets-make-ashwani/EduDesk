@@ -8,8 +8,15 @@ import csv
 import io
 
 class StudentViewSet(viewsets.ModelViewSet):
-    queryset = Student.objects.all()
     serializer_class = StudentSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_superuser or user.role == 'SUPERADMIN':
+            return Student.objects.all()
+        if user.school:
+            return Student.objects.filter(school=user.school)
+        return Student.objects.none()
 
     @action(detail=False, methods=['delete'])
     def delete_all(self, request):

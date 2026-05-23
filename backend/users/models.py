@@ -3,12 +3,15 @@ from django.db import models
 
 class User(AbstractUser):
     ROLE_CHOICES = (
-        ('admin', 'Admin (Principal)'),
+        ('SUPERADMIN', 'Platform Owner'),
+        ('SCHOOL_ADMIN', 'School Admin'),
+        ('admin', 'Admin (Legacy)'),
         ('teacher', 'Teacher'),
         ('parent', 'Parent'),
         ('student', 'Student'),
     )
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='admin')
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='student')
+    school = models.ForeignKey('core.School', on_delete=models.CASCADE, null=True, blank=True)
     
     def __str__(self):
         return f"{self.username} - {self.get_role_display()}"
