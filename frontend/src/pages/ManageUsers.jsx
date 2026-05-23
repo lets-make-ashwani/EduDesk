@@ -1,0 +1,122 @@
+import { useState, useEffect } from 'react';
+import api from '../lib/axios';
+
+export default function ManageUsers() {
+    const [users, setUsers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [formData, setFormData] = useState({
+        username: '',
+        password: '',
+        role: 'teacher'
+    });
+
+    useEffect(() => {
+        fetchUsers();
+    }, []);
+
+    const fetchUsers = async () => {
+        try {
+            const res = await api.get('users/');
+            setUsers(res.data);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleInputChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        try {
+            await api.post('users/', formData);
+            alert('User created successfully!');
+            setIsModalOpen(false);
+            setFormData({ username: '', password: '', role: 'teacher' });
+            fetchUsers();
+        } catch (error) {
+            alert('Error creating user. Username might exist or password too simple.');
+        }
+    };
+
+    if (loading) return <div className="p-8">Loading users...</div>;
+
+    return (
+        <div className="animate-in fade-in duration-500">
+            <div className="flex justify-between items-center mb-6">
+                <h1 className="text-2xl font-bold tracking-tight text-gray-900">Manage Users & Roles</h1>
+                <button
+                    onClick={() => setIsModalOpen(true)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-sm"
+                >
+                    + Add New User
+                </button>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                        <tr>
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">ID</th>
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Username</th>
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Assigned Role</th>
+                        </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                        {users.map((u) => (
+                            <tr key={u.id} className="hover:bg-gray-50">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{u.id}</td>
+                                <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{u.username}</td>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                        ${u.role === 'admin' ? 'bg-purple-100 text-purple-800' :
+                                        u.role === 'teacher' ? 'bg-blue-100 text-blue-800' :
+                                        u.role === 'student' ? 'bg-green-100 text-green-800' :
+                                        'bg-gray-100 text-gray-800'}`
+                                    }>
+                                        {u.role.toUpperCase()}
+                                    </span>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+
+            {isModalOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white p-6 rounded-xl shadow-xl w-full max-w-md">
+                        <h2 className="text-xl font-bold mb-4 border-b pb-2">Create New User</h2>
+                        <form onSubmit={handleSubmit} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                                <input required type="text" name="username" value={formData.username} onChange={handleInputChange} className="w-full border-gray-300 rounded-md shadow-sm p-2 border" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                                <input required type="password" name="password" value={formData.password} onChange={handleInputChange} className="w-full border-gray-300 rounded-md shadow-sm p-2 border" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+                                <select required name="role" value={formData.role} onChange={handleInputChange} className="w-full border-gray-300 rounded-md shadow-sm p-2 border">
+                                    <option value="admin">Admin (Principal)</option>
+                                    <option value="teacher">Teacher</option>
+                                    <option value="parent">Parent</option>
+                                    <option value="student">Student</option>
+                                </select>
+                            </div>
+                            <div className="flex justify-end space-x-3 mt-6 pt-4 border-t">
+                                <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 bg-gray-100 rounded-lg">Cancel</button>
+                                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg">Create User</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
