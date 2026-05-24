@@ -28,6 +28,8 @@ const RoleRoute = ({ children, allowedRoles }) => {
 
   if (!allowedRoles.includes(user.role)) {
     // Redirect to their respective dashboard if they try to access the wrong one
+    if (user.role === 'SUPERADMIN') return <Navigate to="/superadmin" />;
+    if (user.role === 'SCHOOL_ADMIN') return <Navigate to="/school-admin" />;
     if (user.role === 'admin') return <Navigate to="/admin" />;
     if (user.role === 'teacher') return <Navigate to="/teacher" />;
     if (user.role === 'parent') return <Navigate to="/parent" />;
@@ -41,7 +43,12 @@ const RoleRoute = ({ children, allowedRoles }) => {
 const RootRedirect = () => {
   const { user, loading } = useContext(AuthContext);
   if (loading) return <div>Loading...</div>;
-  return user ? <Navigate to={`/${user.role}`} /> : <Navigate to="/login" />;
+  if (!user) return <Navigate to="/login" />;
+
+  if (user.role === 'SUPERADMIN') return <Navigate to="/superadmin" />;
+  if (user.role === 'SCHOOL_ADMIN') return <Navigate to="/school-admin" />;
+  if (user.role === 'admin') return <Navigate to="/admin" />;
+  return <Navigate to={`/${user.role}`} />;
 };
 
 function App() {
@@ -53,6 +60,26 @@ function App() {
 
         {/* Root Redirect based on Role */}
         <Route path="/" element={<RootRedirect />} />
+
+        {/* SuperAdmin Routes */}
+        <Route path="/superadmin" element={<RoleRoute allowedRoles={['SUPERADMIN']}><DashboardLayout /></RoleRoute>}>
+          <Route index element={<Dashboard />} />
+          {/* You will eventually replace <Dashboard /> below with a <ManageSchools /> component */}
+          <Route path="schools" element={<Dashboard />} /> 
+          <Route path="users" element={<ManageUsers />} />
+          <Route path="settings" element={<Dashboard />} />
+        </Route>
+
+        {/* School Admin Routes (New B2B Client Role) */}
+        <Route path="/school-admin" element={<RoleRoute allowedRoles={['SCHOOL_ADMIN']}><DashboardLayout /></RoleRoute>}>
+          <Route index element={<Dashboard />} />
+          <Route path="students" element={<Students />} />
+          <Route path="attendance" element={<Attendance />} />
+          <Route path="fees" element={<Fees />} />
+          <Route path="exams" element={<Exams />} />
+          <Route path="notices" element={<Notices />} />
+          <Route path="users" element={<ManageUsers />} />
+        </Route>
 
         {/* Admin Routes */}
         <Route path="/admin" element={<RoleRoute allowedRoles={['admin']}><DashboardLayout /></RoleRoute>}>

@@ -1,21 +1,49 @@
-import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, Users, CalendarCheck, CreditCard, ClipboardList, Bell, Settings } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { LayoutDashboard, Users, CalendarCheck, CreditCard, ClipboardList, Bell, Settings, Building, LogOut } from 'lucide-react';
 import { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 
 export default function Sidebar() {
     const location = useLocation();
-    const { user } = useContext(AuthContext);
+    const { user, logout } = useContext(AuthContext);
+    const navigate = useNavigate();
 
-    const menuItems = [
-        { path: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-        { path: '/admin/students', label: 'Students', icon: Users },
-        { path: '/admin/attendance', label: 'Attendance', icon: CalendarCheck },
-        { path: '/admin/fees', label: 'Fees', icon: CreditCard },
-        { path: '/admin/exams', label: 'Exams', icon: ClipboardList },
-        { path: '/admin/notices', label: 'Notices', icon: Bell },
-        { path: '/admin/users', label: 'Manage Users', icon: Settings },
-    ];
+    const handleLogout = () => {
+        // 1. Remove security tokens from the browser
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        // 2. Clear global user state and redirect to login
+        if (logout) logout();
+        navigate('/login');
+    };
+
+    let menuItems = [];
+
+    if (user?.role === 'SUPERADMIN') {
+        menuItems = [
+            { path: '/superadmin', label: 'Platform Dashboard', icon: LayoutDashboard },
+            { path: '/superadmin/schools', label: 'Manage Schools', icon: Building },
+            { path: '/superadmin/users', label: 'Platform Users', icon: Users },
+            { path: '/superadmin/settings', label: 'Settings', icon: Settings },
+        ];
+    } else if (user?.role === 'SCHOOL_ADMIN' || user?.role === 'admin') {
+        const prefix = user?.role === 'SCHOOL_ADMIN' ? '/school-admin' : '/admin';
+        menuItems = [
+            { path: prefix, label: 'Dashboard', icon: LayoutDashboard },
+            { path: `${prefix}/students`, label: 'Students', icon: Users },
+            { path: `${prefix}/attendance`, label: 'Attendance', icon: CalendarCheck },
+            { path: `${prefix}/fees`, label: 'Fees', icon: CreditCard },
+            { path: `${prefix}/exams`, label: 'Exams', icon: ClipboardList },
+            { path: `${prefix}/notices`, label: 'Notices', icon: Bell },
+            { path: `${prefix}/users`, label: 'Manage Users', icon: Settings },
+        ];
+    } else {
+        // Fallback for isolated minimal dashboards
+        const prefix = `/${user?.role || ''}`;
+        menuItems = [
+            { path: prefix, label: 'Dashboard', icon: LayoutDashboard },
+        ];
+    }
 
     return (
         <div className="w-64 bg-slate-900 border-r border-slate-800 text-white flex flex-col shadow-xl z-10">
@@ -25,8 +53,8 @@ export default function Sidebar() {
             <nav className="flex-1 p-4 space-y-1">
                 {menuItems.map((item) => {
                     const Icon = item.icon;
-                    // Exact match for dashboard, partial check for subpages
-                    const isActive = location.pathname === item.path || (item.path !== '/admin' && location.pathname.startsWith(item.path));
+                    const isBaseRoute = item.path === '/admin' || item.path === '/superadmin' || item.path === '/school-admin';
+                    const isActive = location.pathname === item.path || (!isBaseRoute && location.pathname.startsWith(item.path));
                     return (
                         <Link
                             key={item.path}
@@ -40,8 +68,15 @@ export default function Sidebar() {
                     );
                 })}
             </nav>
-            <div className="p-4 border-t border-slate-800 text-xs text-slate-500 text-center">
-                EduDesk MVP v1.0
+            <div className="p-4 border-t border-slate-800">
+                <button 
+                    onClick={handleLogout}
+                    className="flex items-center w-full px-4 py-3 mb-3 rounded-lg text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all duration-200 font-medium text-sm"
+                >
+                    <LogOut className="w-5 h-5 mr-3" />
+                    Logout
+                </button>
+                <div className="text-xs text-slate-500 text-center">EduDesk MVP v1.0</div>
             </div>
         </div>
     );
