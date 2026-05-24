@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Building, Plus, Mail, User, Lock, X, Copy, Check, School, Server } from 'lucide-react';
+import api from '../lib/axios';
 
 export default function ManageSchools() {
   const [schools, setSchools] = useState([]);
@@ -17,22 +18,14 @@ export default function ManageSchools() {
     password: '',
   });
 
-  // Replace with your actual base URL if different
-  const API_BASE_URL = 'https://edudesk-api.onrender.com/api'; 
-
   useEffect(() => {
     fetchSchools();
   }, []);
 
   const fetchSchools = async () => {
     try {
-      const token = localStorage.getItem('access_token');
-      const res = await fetch(`${API_BASE_URL}/schools/`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (!res.ok) throw new Error('Failed to fetch schools');
-      const data = await res.json();
-      setSchools(data);
+      const res = await api.get('schools/');
+      setSchools(res.data);
     } catch (err) {
       console.error(err);
     } finally {
@@ -49,23 +42,12 @@ export default function ManageSchools() {
     setSubmitLoading(true);
     setError(null);
     try {
-      const token = localStorage.getItem('access_token');
-      const res = await fetch(`${API_BASE_URL}/platform-admin/register-school/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify(formData)
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || data.detail || 'Failed to register school');
-
-      setSuccessData(data);
+      const res = await api.post('platform-admin/register-school/', formData);
+      setSuccessData(res.data);
       fetchSchools();
       setFormData({ school_name: '', email: '', username: '', password: '' });
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.error || err.response?.data?.detail || err.message || 'Failed to register school');
     } finally {
       setSubmitLoading(false);
     }
