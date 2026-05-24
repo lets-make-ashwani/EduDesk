@@ -29,8 +29,7 @@ const RoleRoute = ({ children, allowedRoles }) => {
   if (!allowedRoles.includes(user.role)) {
     // Redirect to their respective dashboard if they try to access the wrong one
     if (user.role === 'SUPERADMIN') return <Navigate to="/superadmin" />;
-    if (user.role === 'SCHOOL_ADMIN') return <Navigate to="/school-admin" />;
-    if (user.role === 'admin') return <Navigate to="/admin" />;
+    if (user.role === 'SCHOOL_ADMIN' || user.role === 'admin') return <Navigate to="/school-admin" />;
     if (user.role === 'teacher') return <Navigate to="/teacher" />;
     if (user.role === 'student') return <Navigate to="/student" />;
     return <Navigate to="/login" />;
@@ -45,7 +44,7 @@ const RootRedirect = () => {
   if (!user) return <Navigate to="/login" />;
 
   if (user.role === 'SUPERADMIN') return <Navigate to="/superadmin" />;
-  if (user.role === 'SCHOOL_ADMIN') return <Navigate to="/school-admin" />;
+  if (user.role === 'SCHOOL_ADMIN' || user.role === 'admin') return <Navigate to="/school-admin" />;
   return <Navigate to={`/${user.role}`} />;
 };
 
@@ -68,7 +67,7 @@ function App() {
         </Route>
 
         {/* School Admin Routes (New B2B Client Role) */}
-        <Route path="/school-admin" element={<RoleRoute allowedRoles={['SCHOOL_ADMIN']}><DashboardLayout /></RoleRoute>}>
+        <Route path="/school-admin" element={<RoleRoute allowedRoles={['SCHOOL_ADMIN', 'admin']}><DashboardLayout /></RoleRoute>}>
           <Route index element={<Dashboard />} />
           <Route path="students" element={<Students />} />
           <Route path="attendance" element={<Attendance />} />

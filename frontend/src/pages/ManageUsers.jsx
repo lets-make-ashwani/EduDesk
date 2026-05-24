@@ -73,7 +73,8 @@ export default function ManageUsers() {
                                 <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{u.username}</td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                        ${u.role === 'admin' ? 'bg-purple-100 text-purple-800' :
+                                        ${u.role === 'SUPERADMIN' ? 'bg-red-100 text-red-800' :
+                                        u.role === 'SCHOOL_ADMIN' || u.role === 'admin' ? 'bg-purple-100 text-purple-800' :
                                         u.role === 'teacher' ? 'bg-blue-100 text-blue-800' :
                                         u.role === 'student' ? 'bg-green-100 text-green-800' :
                                         'bg-gray-100 text-gray-800'}`
@@ -103,9 +104,7 @@ export default function ManageUsers() {
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
                                 <select required name="role" value={formData.role} onChange={handleInputChange} className="w-full border-gray-300 rounded-md shadow-sm p-2 border">
-                                    <option value="admin">Admin (Principal)</option>
                                     <option value="teacher">Teacher</option>
-                                    <option value="parent">Parent</option>
                                     <option value="student">Student</option>
                                 </select>
                             </div>

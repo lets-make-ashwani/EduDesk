@@ -26,7 +26,7 @@ export default function Sidebar() {
             { path: '/superadmin/users', label: 'Platform Users', icon: Users },
             { path: '/superadmin/settings', label: 'Settings', icon: Settings },
         ];
-    } else if (user?.role === 'SCHOOL_ADMIN') {
+    } else if (user?.role === 'SCHOOL_ADMIN' || user?.role === 'admin') {
         const prefix = '/school-admin';
         menuItems = [
             { path: prefix, label: 'Dashboard', icon: LayoutDashboard },
