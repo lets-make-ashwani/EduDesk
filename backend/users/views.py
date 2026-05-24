@@ -14,4 +14,7 @@ class UserViewSet(viewsets.ModelViewSet):
 @permission_classes([IsAuthenticated])
 def me(request):
     serializer = UserSerializer(request.user)
-    return Response(serializer.data)
+    data = dict(serializer.data)
+    # Inject the school name for the frontend UI badge
+    data['school_name'] = request.user.school.name if request.user.school else None
+    return Response(data)

@@ -12,7 +12,7 @@ import Notices from './pages/Notices';
 import ManageUsers from './pages/ManageUsers';
 import TeacherDashboard from './pages/TeacherDashboard';
 import StudentDashboard from './pages/StudentDashboard';
-import ManageSchools from './pages/ManageSchools';
+import ManageSchools from './components/ManageSchools';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useContext(AuthContext);
