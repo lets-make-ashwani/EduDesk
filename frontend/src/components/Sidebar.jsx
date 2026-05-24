@@ -26,8 +26,8 @@ export default function Sidebar() {
             { path: '/superadmin/users', label: 'Platform Users', icon: Users },
             { path: '/superadmin/settings', label: 'Settings', icon: Settings },
         ];
-    } else if (user?.role === 'SCHOOL_ADMIN' || user?.role === 'admin') {
-        const prefix = user?.role === 'SCHOOL_ADMIN' ? '/school-admin' : '/admin';
+    } else if (user?.role === 'SCHOOL_ADMIN') {
+        const prefix = '/school-admin';
         menuItems = [
             { path: prefix, label: 'Dashboard', icon: LayoutDashboard },
             { path: `${prefix}/students`, label: 'Students', icon: Users },
@@ -53,7 +53,7 @@ export default function Sidebar() {
             <nav className="flex-1 p-4 space-y-1">
                 {menuItems.map((item) => {
                     const Icon = item.icon;
-                    const isBaseRoute = item.path === '/admin' || item.path === '/superadmin' || item.path === '/school-admin';
+                    const isBaseRoute = item.path === '/superadmin' || item.path === '/school-admin';
                     const isActive = location.pathname === item.path || (!isBaseRoute && location.pathname.startsWith(item.path));
                     return (
                         <Link

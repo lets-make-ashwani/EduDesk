@@ -24,6 +24,11 @@ export default function DashboardLayout() {
                     <div className="px-6 py-4 flex justify-between items-center">
                         <h2 className="text-xl font-semibold text-gray-800 tracking-tight">EduDesk Manager</h2>
                         <div className="flex items-center space-x-4">
+                            {user?.role !== 'SUPERADMIN' && (
+                                <span className="text-sm text-blue-700 font-semibold bg-blue-50 border border-blue-100 px-3 py-1 rounded-full shadow-sm">
+                                    {user?.school_name || "My School"}
+                                </span>
+                            )}
                             <span className="text-sm text-gray-600 font-medium bg-gray-100 px-3 py-1 rounded-full">{user?.username} ({user?.role})</span>
                             <button
                                 onClick={handleLogout}

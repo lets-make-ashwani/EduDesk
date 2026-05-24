@@ -11,7 +11,6 @@ import Exams from './pages/Exams';
 import Notices from './pages/Notices';
 import ManageUsers from './pages/ManageUsers';
 import TeacherDashboard from './pages/TeacherDashboard';
-import ParentDashboard from './pages/ParentDashboard';
 import StudentDashboard from './pages/StudentDashboard';
 import ManageSchools from './pages/ManageSchools';
 
@@ -33,7 +32,6 @@ const RoleRoute = ({ children, allowedRoles }) => {
     if (user.role === 'SCHOOL_ADMIN') return <Navigate to="/school-admin" />;
     if (user.role === 'admin') return <Navigate to="/admin" />;
     if (user.role === 'teacher') return <Navigate to="/teacher" />;
-    if (user.role === 'parent') return <Navigate to="/parent" />;
     if (user.role === 'student') return <Navigate to="/student" />;
     return <Navigate to="/login" />;
   }
@@ -48,7 +46,6 @@ const RootRedirect = () => {
 
   if (user.role === 'SUPERADMIN') return <Navigate to="/superadmin" />;
   if (user.role === 'SCHOOL_ADMIN') return <Navigate to="/school-admin" />;
-  if (user.role === 'admin') return <Navigate to="/admin" />;
   return <Navigate to={`/${user.role}`} />;
 };
 
@@ -81,20 +78,8 @@ function App() {
           <Route path="users" element={<ManageUsers />} />
         </Route>
 
-        {/* Admin Routes */}
-        <Route path="/admin" element={<RoleRoute allowedRoles={['admin']}><DashboardLayout /></RoleRoute>}>
-          <Route index element={<Dashboard />} />
-          <Route path="students" element={<Students />} />
-          <Route path="attendance" element={<Attendance />} />
-          <Route path="fees" element={<Fees />} />
-          <Route path="exams" element={<Exams />} />
-          <Route path="notices" element={<Notices />} />
-          <Route path="users" element={<ManageUsers />} />
-        </Route>
-
         {/* New Dashboards */}
         <Route path="/teacher/*" element={<RoleRoute allowedRoles={['teacher']}><TeacherDashboard /></RoleRoute>} />
-        <Route path="/parent/*" element={<RoleRoute allowedRoles={['parent']}><ParentDashboard /></RoleRoute>} />
         <Route path="/student/*" element={<RoleRoute allowedRoles={['student']}><StudentDashboard /></RoleRoute>} />
       </Routes>
     </Router>

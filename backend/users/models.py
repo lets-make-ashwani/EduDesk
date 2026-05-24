@@ -4,10 +4,8 @@ from django.db import models
 class User(AbstractUser):
     ROLE_CHOICES = (
         ('SUPERADMIN', 'Platform Owner'),
-        ('SCHOOL_ADMIN', 'School Admin'),
-        ('admin', 'Admin (Legacy)'),
+        ('SCHOOL_ADMIN', 'Principal'),
         ('teacher', 'Teacher'),
-        ('parent', 'Parent'),
         ('student', 'Student'),
     )
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='student')
@@ -24,11 +22,3 @@ class TeacherProfile(models.Model):
     
     def __str__(self):
         return f"Teacher: {self.user.get_full_name() or self.user.username}"
-
-class ParentProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='parent_profile')
-    primary_contact = models.CharField(max_length=20)
-    address = models.TextField(blank=True)
-    
-    def __str__(self):
-        return f"Parent: {self.user.get_full_name() or self.user.username}"
