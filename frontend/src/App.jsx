@@ -13,6 +13,7 @@ import ManageUsers from './pages/ManageUsers';
 import TeacherDashboard from './pages/TeacherDashboard';
 import ParentDashboard from './pages/ParentDashboard';
 import StudentDashboard from './pages/StudentDashboard';
+import ManageSchools from './pages/ManageSchools';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useContext(AuthContext);
@@ -64,8 +65,7 @@ function App() {
         {/* SuperAdmin Routes */}
         <Route path="/superadmin" element={<RoleRoute allowedRoles={['SUPERADMIN']}><DashboardLayout /></RoleRoute>}>
           <Route index element={<Dashboard />} />
-          {/* You will eventually replace <Dashboard /> below with a <ManageSchools /> component */}
-          <Route path="schools" element={<Dashboard />} /> 
+          <Route path="schools" element={<ManageSchools />} /> 
           <Route path="users" element={<ManageUsers />} />
           <Route path="settings" element={<Dashboard />} />
         </Route>
