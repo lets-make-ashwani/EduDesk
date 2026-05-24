@@ -1,10 +1,20 @@
-import { Outlet } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 
 export default function DashboardLayout() {
     const { user, logout } = useContext(AuthContext);
+    const navigate = useNavigate();
+
+    const handleLogout = () => {
+        // 1. Remove security tokens from the browser
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        // 2. Clear global user state and redirect to login
+        if (logout) logout();
+        navigate('/login');
+    };
 
     return (
         <div className="flex h-screen bg-gray-100 font-sans">
@@ -16,7 +26,7 @@ export default function DashboardLayout() {
                         <div className="flex items-center space-x-4">
                             <span className="text-sm text-gray-600 font-medium bg-gray-100 px-3 py-1 rounded-full">{user?.username} ({user?.role})</span>
                             <button
-                                onClick={logout}
+                                onClick={handleLogout}
                                 className="text-sm font-medium text-red-600 hover:text-red-800 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-full transition"
                             >
                                 Logout
