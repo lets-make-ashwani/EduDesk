@@ -10,10 +10,17 @@ python -c "import os, django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'edudesk.settings')
 django.setup()
 from django.db import connection
-try: connection.cursor().execute('ALTER TABLE users_user DROP COLUMN IF EXISTS school_id CASCADE;')
+try:
+    with connection.cursor() as c:
+        c.execute('ALTER TABLE users_user ADD COLUMN school_id bigint NULL REFERENCES core_school(id);')
+except: pass
+try:
+    with connection.cursor() as c:
+        c.execute('DROP TABLE users_parentprofile;')
 except: pass"
 
-python manage.py migrate
+python manage.py makemigrations --noinput || true
+python manage.py migrate || true
 
 # Automatically create superuser (fails gracefully if it already exists)
 python manage.py createsuperuser --noinput || true
