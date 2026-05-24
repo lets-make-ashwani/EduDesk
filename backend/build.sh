@@ -24,3 +24,6 @@ python manage.py migrate || true
 
 # Automatically create superuser (fails gracefully if it already exists)
 python manage.py createsuperuser --noinput || true
+
+# Ensure that the superuser created via Render environment variables is assigned the SUPERADMIN role
+python -c "import os, django; os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'edudesk.settings'); django.setup(); from users.models import User; User.objects.filter(is_superuser=True).update(role='SUPERADMIN')"
