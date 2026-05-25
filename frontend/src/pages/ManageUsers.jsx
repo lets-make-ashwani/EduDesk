@@ -126,12 +126,14 @@ export default function ManageUsers() {
                                     </span>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <button
-                                        onClick={() => handleDelete(u.id)}
-                                        className="text-red-600 hover:text-red-900"
-                                    >
-                                        Delete
-                                    </button>
+                                    {u.role !== 'SUPERADMIN' && (
+                                        <button
+                                            onClick={() => handleDelete(u.id)}
+                                            className="text-red-600 hover:text-red-900"
+                                        >
+                                            Delete
+                                        </button>
+                                    )}
                                 </td>
                             </tr>
                         ))}
