@@ -43,6 +43,17 @@ export default function ManageUsers() {
         }
     };
 
+    const handleDelete = async (id) => {
+        if (window.confirm("Are you sure you want to delete this user?")) {
+            try {
+                await api.delete(`users/${id}/`);
+                fetchUsers();
+            } catch (error) {
+                alert('Error deleting user.');
+            }
+        }
+    };
+
     if (loading) return <div className="p-8">Loading users...</div>;
 
     return (
@@ -64,6 +75,7 @@ export default function ManageUsers() {
                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">ID</th>
                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Username</th>
                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Assigned Role</th>
+                            <th className="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
@@ -81,6 +93,14 @@ export default function ManageUsers() {
                                     }>
                                         {u.role.toUpperCase()}
                                     </span>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <button
+                                        onClick={() => handleDelete(u.id)}
+                                        className="text-red-600 hover:text-red-900"
+                                    >
+                                        Delete
+                                    </button>
                                 </td>
                             </tr>
                         ))}
