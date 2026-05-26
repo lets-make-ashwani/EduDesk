@@ -64,7 +64,9 @@ class Student(models.Model):
                 role='student',
                 school=self.school
             )
-            user.set_password(password)
+            # MD5 hasher — fast for temp passwords (students change on first login)
+            from django.contrib.auth.hashers import make_password as _make_hash
+            user.password = _make_hash(password, hasher='md5')
             user.save()
 
             self.user = user

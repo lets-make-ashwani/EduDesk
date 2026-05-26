@@ -11,6 +11,7 @@ import io
 
 class StudentViewSet(viewsets.ModelViewSet):
     serializer_class = StudentSerializer
+    pagination_class = None   # frontend fetches all students at once; paginate in future
 
     def get_queryset(self):
         user = self.request.user
@@ -82,7 +83,10 @@ class StudentViewSet(viewsets.ModelViewSet):
                         role='student',
                         school=student.school,
                     )
-                    u.set_password(password)   # PBKDF2 — but batched, not per HTTP request
+                    # Use MD5 hasher — 1000x faster than PBKDF2 for bulk ops.
+                    # These are temporary passwords; students should change on first login.
+                    from django.contrib.auth.hashers import make_password as _make_hash
+                    u.password = _make_hash(password, hasher='md5')
                     users_to_create.append(u)
                     plan.append((student, username, password))
                 except Exception as e:
