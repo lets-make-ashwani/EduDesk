@@ -29,39 +29,22 @@ class StudentViewSet(viewsets.ModelViewSet):
             serializer.save()
 
     # ─────────────────────────────────────────────────────────────────────────
-    # Backfill credentials for existing students (bulk, no per-row PBKDF2)
+    # Helper to generate student credentials in large batches
     # ─────────────────────────────────────────────────────────────────────────
-    @action(detail=False, methods=['post'])
-    def generate_credentials(self, request):
-        """
-        Generate username + password for every student in this school
-        who does not yet have a linked user account.
-        Uses bulk_create to minimise DB round-trips and PBKDF2 overhead.
-        """
+    def _generate_credentials_for_queryset(self, students_qs):
         from users.models import User
         from .models import Student as StudentModel
 
-        students_qs = list(
-            self.get_queryset()
-            .filter(user__isnull=True)
-            .select_related('school')
-        )
-
-        if not students_qs:
-            return Response(
-                {"message": "All students already have login credentials.", "errors": []},
-                status=status.HTTP_200_OK,
-            )
-
         created = 0
         errors = []
-        CHUNK = 50
+        CHUNK = 500  # Process up to 500 records at once to keep DB round-trips low
 
         # Pre-load all existing usernames once — avoids one SELECT per student
         existing_usernames = set(User.objects.values_list('username', flat=True))
+        students_list = list(students_qs)
 
-        for i in range(0, len(students_qs), CHUNK):
-            chunk = students_qs[i: i + CHUNK]
+        for i in range(0, len(students_list), CHUNK):
+            chunk = students_list[i: i + CHUNK]
             users_to_create = []
             plan = []   # (student, username, plaintext_password)
 
@@ -121,6 +104,27 @@ class StudentViewSet(viewsets.ModelViewSet):
 
             if students_to_update:
                 Student.objects.bulk_update(students_to_update, ['user', 'temp_password'])
+
+        return created, errors
+
+    # ─────────────────────────────────────────────────────────────────────────
+    # Backfill credentials for existing students (bulk, no per-row PBKDF2)
+    # ─────────────────────────────────────────────────────────────────────────
+    @action(detail=False, methods=['post'])
+    def generate_credentials(self, request):
+        """
+        Generate username + password for every student in this school
+        who does not yet have a linked user account.
+        """
+        students_qs = self.get_queryset().filter(user__isnull=True)
+
+        if not students_qs.exists():
+            return Response(
+                {"message": "All students already have login credentials.", "errors": []},
+                status=status.HTTP_200_OK,
+            )
+
+        created, errors = self._generate_credentials_for_queryset(students_qs)
 
         return Response(
             {"message": f"Generated credentials for {created} student(s).", "errors": errors},
@@ -249,13 +253,24 @@ class StudentViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
+        # ── Phase 3: Automatically generate username & password credentials for newly uploaded students ──
+        created_creds, creds_errors = 0, []
+        try:
+            # Query back students from the uploaded school who lack a linked user account
+            newly_inserted_qs = Student.objects.filter(school=school, user__isnull=True)
+            created_creds, creds_errors = self._generate_credentials_for_queryset(newly_inserted_qs)
+        except Exception as e:
+            creds_errors.append(f"Failed to generate credentials: {str(e)}")
+
+        msg = f"Bulk upload successful. Created {students_created} students."
+        if created_creds > 0:
+            msg += f" Automatically generated credentials for {created_creds} student(s)."
+        if creds_errors:
+            msg += f" Warning/Errors generating some credentials: {', '.join(creds_errors[:5])}"
+
         return Response(
             {
-                "message": (
-                    f"Bulk upload successful. Created {students_created} students. "
-                    "Now use '🔑 Generate Missing Credentials' from the Add Student menu "
-                    "to create login accounts for them."
-                )
+                "message": msg
             },
             status=status.HTTP_201_CREATED,
         )

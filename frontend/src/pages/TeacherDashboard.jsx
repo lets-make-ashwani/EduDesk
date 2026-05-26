@@ -67,6 +67,8 @@ export default function TeacherDashboard() {
     const fetchData = async () => {
         setLoading(true);
         setError('');
+        // Helper: DRF may return {count, results:[...]} or plain []
+        const toArray = (data) => (Array.isArray(data) ? data : (data?.results ?? []));
         try {
             const [subjectsRes, homeworksRes, materialsRes, timetablesRes] = await Promise.all([
                 api.get('/academics/class-subjects/'),
@@ -74,14 +76,15 @@ export default function TeacherDashboard() {
                 api.get('/academics/study-materials/'),
                 api.get('/academics/timetables/')
             ]);
-            setClassSubjects(subjectsRes.data);
-            setHomeworks(homeworksRes.data);
-            setMaterials(materialsRes.data);
-            setTimetables(timetablesRes.data);
+            setClassSubjects(toArray(subjectsRes.data));
+            setHomeworks(toArray(homeworksRes.data));
+            setMaterials(toArray(materialsRes.data));
+            setTimetables(toArray(timetablesRes.data));
+
             setStats({
-                classes: subjectsRes.data.length,
-                homeworks: homeworksRes.data.length,
-                materials: materialsRes.data.length
+                classes: toArray(subjectsRes.data).length,
+                homeworks: toArray(homeworksRes.data).length,
+                materials: toArray(materialsRes.data).length
             });
         } catch (err) {
             console.error("Error fetching teacher dashboard data", err);

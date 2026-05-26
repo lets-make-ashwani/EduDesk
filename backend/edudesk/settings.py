@@ -153,9 +153,6 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": (
         "rest_framework.permissions.IsAuthenticated",
     ),
-    # Paginate large lists to avoid 300KB+ responses killing the worker
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
-    "PAGE_SIZE": 100,
 }
 
 # Use MD5 for student temp-password bulk operations (1000x faster than PBKDF2).

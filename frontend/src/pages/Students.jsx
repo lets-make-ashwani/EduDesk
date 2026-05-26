@@ -230,22 +230,26 @@ export default function Students() {
 
     const fetchData = async () => {
         try {
+            const toArray = (d) => (Array.isArray(d) ? d : (d?.results ?? []));
             const [studentsRes, schoolsRes, classesRes, sectionsRes] = await Promise.all([
                 api.get('students/'),
                 api.get('schools/'),
                 api.get('classes/'),
                 api.get('sections/')
             ]);
-            setStudents(studentsRes.data);
-            setSchools(schoolsRes.data);
-            setClasses(classesRes.data);
-            setSections(sectionsRes.data);
+            setStudents(toArray(studentsRes.data));
+            setSchools(toArray(schoolsRes.data));
+            setClasses(toArray(classesRes.data));
+            setSections(toArray(sectionsRes.data));
 
+            const sch = toArray(schoolsRes.data);
+            const cls = toArray(classesRes.data);
+            const sec = toArray(sectionsRes.data);
             setFormData(prev => ({
                 ...prev,
-                school: schoolsRes.data.length > 0 ? schoolsRes.data[0].id : '',
-                student_class: classesRes.data.length > 0 ? classesRes.data[0].id : '',
-                section: sectionsRes.data.length > 0 ? sectionsRes.data[0].id : ''
+                school: sch.length > 0 ? sch[0].id : '',
+                student_class: cls.length > 0 ? cls[0].id : '',
+                section: sec.length > 0 ? sec[0].id : ''
             }));
         } catch (err) {
             console.error(err);
@@ -377,7 +381,7 @@ export default function Students() {
             if (res.data.errors && res.data.errors.length > 0) {
                 setBulkErrors(res.data.errors);
             } else {
-                alert('Bulk upload completely successful!');
+                alert(res.data.message || 'Bulk upload completely successful!');
                 setIsBulkModalOpen(false);
                 setCsvFile(null);
             }

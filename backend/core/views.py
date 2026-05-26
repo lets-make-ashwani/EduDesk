@@ -10,6 +10,7 @@ from users.models import User
 
 class SchoolViewSet(viewsets.ModelViewSet):
     serializer_class = SchoolSerializer
+    pagination_class = None   # small lookup list — always return plain array
 
     def get_queryset(self):
         user = self.request.user
@@ -21,6 +22,7 @@ class SchoolViewSet(viewsets.ModelViewSet):
 
 class ClassViewSet(viewsets.ModelViewSet):
     serializer_class = ClassSerializer
+    pagination_class = None   # small lookup list — always return plain array
 
     def get_queryset(self):
         user = self.request.user
@@ -32,6 +34,7 @@ class ClassViewSet(viewsets.ModelViewSet):
 
 class SectionViewSet(viewsets.ModelViewSet):
     serializer_class = SectionSerializer
+    pagination_class = None   # small lookup list — always return plain array
 
     def get_queryset(self):
         user = self.request.user
@@ -40,6 +43,7 @@ class SectionViewSet(viewsets.ModelViewSet):
         if user.school:
             return Section.objects.filter(school_class__school=user.school)
         return Section.objects.none()
+
 
 class SaaSOnboardingView(APIView):
     permission_classes = [IsAdminUser] 
