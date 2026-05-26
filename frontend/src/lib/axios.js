@@ -1,8 +1,13 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
+let baseURL = import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://127.0.0.1:8000/api/' : 'https://edudesk-api.onrender.com/api/');
+if (baseURL && !baseURL.endsWith('/api') && !baseURL.endsWith('/api/')) {
+    baseURL = baseURL.endsWith('/') ? `${baseURL}api/` : `${baseURL}/api/`;
+}
+
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://127.0.0.1:8000/api/' : 'https://edudesk-api.onrender.com/api/'),
+    baseURL,
 });
 
 api.interceptors.request.use((config) => {
