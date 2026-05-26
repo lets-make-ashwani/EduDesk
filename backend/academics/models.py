@@ -45,3 +45,20 @@ class StudyMaterial(models.Model):
 
     def __str__(self):
         return f"{self.title} - {self.class_subject}"
+
+class TimeTable(models.Model):
+    DAYS_OF_WEEK = [
+        ('Monday', 'Monday'),
+        ('Tuesday', 'Tuesday'),
+        ('Wednesday', 'Wednesday'),
+        ('Thursday', 'Thursday'),
+        ('Friday', 'Friday'),
+        ('Saturday', 'Saturday'),
+    ]
+    class_subject = models.ForeignKey(ClassSubject, on_delete=models.CASCADE, related_name='timetables')
+    day_of_week = models.CharField(max_length=20, choices=DAYS_OF_WEEK)
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+
+    def __str__(self):
+        return f"{self.class_subject} - {self.day_of_week} {self.start_time}-{self.end_time}"
