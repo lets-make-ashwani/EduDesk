@@ -14,6 +14,7 @@ import TeacherDashboard from './pages/TeacherDashboard';
 import StudentDashboard from './pages/StudentDashboard';
 import ManageSchools from './components/ManageSchools';
 import Settings from './pages/Settings';
+import TimeTable from './pages/TimeTable';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useContext(AuthContext);
@@ -77,6 +78,7 @@ function App() {
           <Route path="exams" element={<Exams />} />
           <Route path="notices" element={<Notices />} />
           <Route path="users" element={<ManageUsers />} />
+          <Route path="timetable" element={<TimeTable />} />
         </Route>
 
         {/* New Dashboards */}

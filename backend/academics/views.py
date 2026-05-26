@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
-from .models import Subject, ClassSubject, Homework, StudyMaterial
-from .serializers import SubjectSerializer, ClassSubjectSerializer, HomeworkSerializer, StudyMaterialSerializer
+from .models import Subject, ClassSubject, Homework, StudyMaterial, TimeTable
+from .serializers import SubjectSerializer, ClassSubjectSerializer, HomeworkSerializer, StudyMaterialSerializer, TimeTableSerializer
 
 class SubjectViewSet(viewsets.ModelViewSet):
     queryset = Subject.objects.all()
@@ -100,3 +100,36 @@ class StudyMaterialViewSet(viewsets.ModelViewSet):
                 raise PermissionDenied("You can only upload materials to your own school.")
 
         serializer.save(uploaded_by=self.request.user)
+
+class TimeTableViewSet(viewsets.ModelViewSet):
+    queryset = TimeTable.objects.all()
+    serializer_class = TimeTableSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.role == 'SUPERADMIN':
+            return TimeTable.objects.all()
+        if not user.school:
+            return TimeTable.objects.none()
+
+        qs = TimeTable.objects.filter(class_subject__school_class__school=user.school)
+        
+        if user.role == 'teacher':
+            return qs.filter(class_subject__teacher=user)
+        elif user.role == 'student':
+            from students.models import Student
+            student = Student.objects.filter(user=user).first()
+            if student:
+                return qs.filter(class_subject__school_class=student.student_class)
+            return qs.none()
+        return qs
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        if user.role != 'SUPERADMIN':
+            class_subject = serializer.validated_data.get('class_subject')
+            if class_subject and class_subject.school_class.school != user.school:
+                from rest_framework.exceptions import PermissionDenied
+                raise PermissionDenied("You can only schedule timetables for your own school.")
+        serializer.save()
