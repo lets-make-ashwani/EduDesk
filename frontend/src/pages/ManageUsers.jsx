@@ -5,6 +5,7 @@ import { AuthContext } from '../context/AuthContext';
 export default function ManageUsers() {
     const { user: currentUser } = useContext(AuthContext);
     const [users, setUsers] = useState([]);
+    const [schools, setSchools] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
@@ -12,12 +13,16 @@ export default function ManageUsers() {
     const [formData, setFormData] = useState({
         username: '',
         password: '',
-        role: 'teacher'
+        role: 'teacher',
+        school: ''
     });
 
     useEffect(() => {
         fetchUsers();
-    }, []);
+        if (currentUser?.role === 'SUPERADMIN') {
+            fetchSchools();
+        }
+    }, [currentUser]);
 
     const fetchUsers = async () => {
         try {
@@ -27,6 +32,15 @@ export default function ManageUsers() {
             console.error(error);
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchSchools = async () => {
+        try {
+            const res = await api.get('schools/');
+            setSchools(res.data);
+        } catch (error) {
+            console.error('Error fetching schools:', error);
         }
     };
 
@@ -40,7 +54,8 @@ export default function ManageUsers() {
         setFormData({
             username: u.username,
             password: '',
-            role: u.role
+            role: u.role,
+            school: u.school || ''
         });
         setIsModalOpen(true);
     };
@@ -49,6 +64,9 @@ export default function ManageUsers() {
         e.preventDefault();
         try {
             const payload = { ...formData };
+            if (payload.school === '') {
+                payload.school = null;
+            }
             if (isEditMode) {
                 if (payload.password === '') {
                     delete payload.password; // Do not update password if left blank
@@ -81,7 +99,7 @@ export default function ManageUsers() {
         setIsModalOpen(false);
         setIsEditMode(false);
         setEditingUserId(null);
-        setFormData({ username: '', password: '', role: 'teacher' });
+        setFormData({ username: '', password: '', role: 'teacher', school: '' });
     };
 
     if (loading) {
@@ -206,10 +224,22 @@ export default function ManageUsers() {
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
                                 <select required name="role" value={formData.role} onChange={handleInputChange} className="w-full border-gray-300 rounded-md shadow-sm p-2 border">
+                                    {currentUser?.role === 'SUPERADMIN' && <option value="SCHOOL_ADMIN">School Admin</option>}
                                     <option value="teacher">Teacher</option>
                                     <option value="student">Student</option>
                                 </select>
                             </div>
+                            {currentUser?.role === 'SUPERADMIN' && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">School</label>
+                                    <select name="school" value={formData.school} onChange={handleInputChange} className="w-full border-gray-300 rounded-md shadow-sm p-2 border">
+                                        <option value="">Platform (No School)</option>
+                                        {schools.map((s) => (
+                                            <option key={s.id} value={s.id}>{s.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            )}
                             <div className="flex justify-end space-x-3 mt-6 pt-4 border-t">
                                 <button type="button" onClick={closeModal} className="px-4 py-2 bg-gray-100 rounded-lg">Cancel</button>
                                 <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg">{isEditMode ? 'Update User' : 'Create User'}</button>

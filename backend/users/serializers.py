@@ -3,10 +3,11 @@ from .models import User, TeacherProfile
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=False)
+    school_name = serializers.CharField(source='school.name', read_only=True)
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'role', 'password')
+        fields = ('id', 'username', 'role', 'password', 'school', 'school_name')
         extra_kwargs = {'password': {'write_only': True}}
         
     def create(self, validated_data):
