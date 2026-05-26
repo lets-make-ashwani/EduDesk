@@ -28,6 +28,26 @@ class FeeViewSet(viewsets.ModelViewSet):
             return Fee.objects.filter(school_class__school=user.school)
         return Fee.objects.none()
 
+    @action(detail=False, methods=['post'])
+    def assign_to_class(self, request):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        fee = serializer.save()
+        school_class_id = request.data.get('school_class')
+        user = request.user
+        
+        from students.models import Student
+        if user.role == 'SUPERADMIN':
+            students = Student.objects.filter(student_class_id=school_class_id)
+        else:
+            students = Student.objects.filter(student_class_id=school_class_id, school=user.school)
+            
+        payments = [Payment(student=s, fee=fee, amount_paid=0, status='Unpaid') for s in students]
+        Payment.objects.bulk_create(payments)
+        
+        return Response({'message': f'Fee created and assigned to {len(payments)} students.'}, status=201)
+
 class PaymentViewSet(viewsets.ModelViewSet):
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer

@@ -43,6 +43,13 @@ class HomeworkViewSet(viewsets.ModelViewSet):
         return qs
 
     def perform_create(self, serializer):
+        user = self.request.user
+        if user.role != 'SUPERADMIN':
+            class_subject = serializer.validated_data.get('class_subject')
+            if class_subject and class_subject.school_class.school != user.school:
+                from rest_framework.exceptions import PermissionDenied
+                raise PermissionDenied("You can only assign homework to your own school.")
+
         homework = serializer.save(created_by=self.request.user)
         
         # Notify all students in this class
@@ -85,4 +92,11 @@ class StudyMaterialViewSet(viewsets.ModelViewSet):
         return qs
 
     def perform_create(self, serializer):
+        user = self.request.user
+        if user.role != 'SUPERADMIN':
+            class_subject = serializer.validated_data.get('class_subject')
+            if class_subject and class_subject.school_class.school != user.school:
+                from rest_framework.exceptions import PermissionDenied
+                raise PermissionDenied("You can only upload materials to your own school.")
+
         serializer.save(uploaded_by=self.request.user)

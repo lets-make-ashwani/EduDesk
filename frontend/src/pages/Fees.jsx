@@ -76,28 +76,8 @@ export default function Fees() {
     const handleAssignFee = async (e) => {
         e.preventDefault();
         try {
-            // 1. Create the Fee
-            const feeRes = await api.post('fees/', paymentFormData);
-            const newFeeId = feeRes.data.id;
-
-            // 2. Find students in this class
-            const targetStudents = students.filter(s => String(s.student_class) === String(paymentFormData.school_class));
-
-            if (targetStudents.length === 0) {
-                alert("Fee created, but no students found in this class to assign the fee to.");
-            } else {
-                // 3. Create a Payment (unpaid bill) for each student
-                const promises = targetStudents.map(student =>
-                    api.post('payments/', {
-                        student: student.id,
-                        fee: newFeeId,
-                        amount_paid: 0,
-                        status: 'Unpaid'
-                    })
-                );
-                await Promise.all(promises);
-                alert(`Fee assigned to ${targetStudents.length} students successfully!`);
-            }
+            const res = await api.post('fees/assign_to_class/', paymentFormData);
+            alert(res.data.message || "Fee assigned successfully!");
 
             setIsPaymentModalOpen(false);
             setPaymentFormData({ description: '', amount: '', due_date: '', school_class: classes.length > 0 ? classes[0].id : '' });
