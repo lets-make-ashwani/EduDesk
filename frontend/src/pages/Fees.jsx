@@ -129,7 +129,29 @@ export default function Fees() {
         }
     };
 
-    if (loading) return <div className="p-8 text-center text-gray-500">Loading...</div>;
+    if (loading) {
+        return (
+            <div className="animate-in fade-in duration-500 relative">
+                <div className="flex justify-between items-center mb-6">
+                    <div className="h-8 w-48 bg-gray-200 rounded animate-pulse"></div>
+                    <div className="h-10 w-64 bg-gray-200 rounded-lg animate-pulse"></div>
+                </div>
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div className="h-12 bg-gray-50 border-b border-gray-200 animate-pulse"></div>
+                    <div className="divide-y divide-gray-200">
+                        {[1, 2, 3, 4, 5].map(i => (
+                            <div key={i} className="h-16 bg-white animate-pulse p-4 flex items-center justify-between">
+                                <div className="h-4 w-1/5 bg-gray-200 rounded"></div>
+                                <div className="h-4 w-1/4 bg-gray-200 rounded"></div>
+                                <div className="h-6 w-16 bg-gray-200 rounded-full"></div>
+                                <div className="h-8 w-24 bg-gray-200 rounded"></div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="animate-in fade-in duration-500 relative">

@@ -3,6 +3,7 @@ import api from '../lib/axios';
 import { Users, CreditCard, CalendarCheck } from 'lucide-react';
 
 export default function Dashboard() {
+    const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({
         students: 0,
         dueFees: 0,
@@ -31,10 +32,31 @@ export default function Dashboard() {
                 });
             } catch (err) {
                 console.error("Error fetching dashboard stats", err);
+            } finally {
+                setLoading(false);
             }
         };
         fetchStats();
     }, []);
+
+    if (loading) {
+        return (
+            <div className="animate-in fade-in duration-500">
+                <div className="h-8 w-64 bg-gray-200 rounded animate-pulse mb-8"></div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {[1, 2, 3].map(i => (
+                        <div key={i} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 flex items-center animate-pulse">
+                            <div className="w-16 h-16 rounded-xl bg-gray-200 mr-5"></div>
+                            <div className="space-y-2">
+                                <div className="h-4 w-24 bg-gray-200 rounded"></div>
+                                <div className="h-8 w-16 bg-gray-200 rounded"></div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="animate-in fade-in duration-500">

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../lib/axios';
 
 export default function Attendance() {
+    const [loading, setLoading] = useState(true);
     const [students, setStudents] = useState([]);
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [attendanceData, setAttendanceData] = useState({});
@@ -13,6 +14,8 @@ export default function Attendance() {
             const initial = {};
             res.data.forEach(s => { initial[s.id] = 'Present' });
             setAttendanceData(initial);
+        }).finally(() => {
+            setLoading(false);
         });
     }, []);
 
@@ -32,6 +35,29 @@ export default function Attendance() {
             alert('Error saving attendance');
         }
     };
+
+    if (loading) {
+        return (
+            <div className="animate-in fade-in duration-500">
+                <div className="flex justify-between items-center mb-6">
+                    <div className="h-8 w-48 bg-gray-200 rounded animate-pulse"></div>
+                    <div className="h-10 w-64 bg-gray-200 rounded-xl animate-pulse"></div>
+                </div>
+                <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div className="h-12 bg-gray-50 border-b border-gray-200 animate-pulse"></div>
+                    <div className="divide-y divide-gray-200">
+                        {[1, 2, 3, 4, 5].map((i) => (
+                            <div key={i} className="h-16 bg-white animate-pulse p-4 flex items-center justify-between">
+                                <div className="h-4 w-1/4 bg-gray-200 rounded"></div>
+                                <div className="h-4 w-1/4 bg-gray-200 rounded"></div>
+                                <div className="h-8 w-24 bg-gray-200 rounded-lg"></div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="animate-in fade-in duration-500">
