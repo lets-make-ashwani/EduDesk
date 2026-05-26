@@ -1,3 +1,4 @@
+import os
 from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -64,6 +65,6 @@ class SaaSOnboardingView(APIView):
             "admin_credentials": {
                 "username": user.username,
                 "password": admin_password,
-                "login_url": "https://edu-desk-beryl.vercel.app/login"
+                "login_url": os.environ.get("FRONTEND_URL", "https://edu-desk-beryl.vercel.app").rstrip("/") + "/login"
             }
         })

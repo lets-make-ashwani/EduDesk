@@ -166,5 +166,5 @@ SIMPLE_JWT = {
 }
 
 # Razorpay Integration (Replace with real keys in production / .env)
-RAZORPAY_KEY_ID = "rzp_test_1234567890"
-RAZORPAY_KEY_SECRET = "abcdefghijklmnopqrstuvwxyz"
+RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID", "rzp_test_1234567890")
+RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET", "abcdefghijklmnopqrstuvwxyz")

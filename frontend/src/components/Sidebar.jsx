@@ -9,10 +9,7 @@ export default function Sidebar() {
     const navigate = useNavigate();
 
     const handleLogout = () => {
-        // 1. Remove security tokens from the browser
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        // 2. Clear global user state and redirect to login
+        // Clear global user state and security tokens (managed via cookies in AuthContext)
         if (logout) logout();
         navigate('/login');
     };
