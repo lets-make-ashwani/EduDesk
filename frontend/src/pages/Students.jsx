@@ -246,11 +246,23 @@ export default function Students() {
                 </div>
             </div>
 
+            <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex items-start space-x-3 mb-6">
+                <span className="text-blue-500 mt-0.5 text-lg">ℹ️</span>
+                <div>
+                    <h4 className="font-bold text-blue-800 text-sm">Student Access Credentials</h4>
+                    <p className="text-blue-700 text-xs mt-1 leading-relaxed">
+                        Every student registered in the system is automatically provisioned a unique login account. 
+                        Their specific <strong>Login ID</strong> and initial <strong>Password</strong> are shown in the directory table below.
+                    </p>
+                </div>
+            </div>
+
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>
                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Registration Info</th>
+                            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Login ID</th>
                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Student Profile</th>
                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Class Info</th>
                             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Contacts</th>
@@ -264,6 +276,16 @@ export default function Students() {
                                     <div className="font-medium text-gray-900">{student.admission_number || 'N/A'}</div>
                                     <div className="text-xs text-gray-500">Admitted: {student.admission_date}</div>
                                 </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm">
+                                    {student.username ? (
+                                        <div>
+                                            <span className="font-mono text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded w-max">{student.username}</span>
+                                            <p className="text-[10px] text-gray-500 font-semibold mt-1">Pwd: <span className="font-mono text-indigo-600 font-bold bg-indigo-50 px-1 py-0.5 rounded">{student.temp_password || 'Changed'}</span></p>
+                                        </div>
+                                    ) : (
+                                        <span className="text-gray-400 italic text-xs">No account linked</span>
+                                    )}
+                                </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-gray-600">
                                     <div className="font-bold text-gray-800">{student.name}</div>
                                     <div className="text-xs text-gray-500">{student.gender || 'Unknown'} | {student.blood_group || 'No BG'}</div>
@@ -276,14 +298,14 @@ export default function Students() {
                                     P: {student.parent_phone || student.contact_number || '-'}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <button onClick={() => handleEditClick(student)} className="text-blue-600 hover:text-blue-900 mr-4">Edit</button>
-                                    <button onClick={() => handleDeleteClick(student.id, student.name)} className="text-red-600 hover:text-red-900">Delete</button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleEditClick(student); }} className="text-blue-600 hover:text-blue-900 mr-4">Edit</button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleDeleteClick(student.id, student.name); }} className="text-red-600 hover:text-red-900">Delete</button>
                                 </td>
                             </tr>
                         ))}
                         {students.length === 0 && (
                             <tr>
-                                <td colSpan="5" className="px-6 py-12 text-center text-gray-500 bg-gray-50">No students found. Add one to get started!</td>
+                                <td colSpan="6" className="px-6 py-12 text-center text-gray-500 bg-gray-50">No students found. Add one to get started!</td>
                             </tr>
                         )}
                     </tbody>
