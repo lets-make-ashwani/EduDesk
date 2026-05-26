@@ -1,7 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from .models import User
-from .serializers import UserSerializer
+from .serializers import UserSerializer, TeacherSerializer
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 
@@ -48,3 +48,16 @@ def me(request):
     # Inject the school name for the frontend UI badge
     data['school_name'] = request.user.school.name if request.user.school else None
     return Response(data)
+
+class TeacherViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.none()
+    serializer_class = TeacherSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_superuser or user.role == 'SUPERADMIN':
+            return User.objects.filter(role='teacher').select_related('school', 'teacher_profile')
+        if user.school:
+            return User.objects.filter(school=user.school, role='teacher').select_related('school', 'teacher_profile')
+        return User.objects.none()

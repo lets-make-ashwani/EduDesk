@@ -1,5 +1,5 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Users, CalendarCheck, CreditCard, ClipboardList, Bell, Settings, Building, LogOut } from 'lucide-react';
+import { LayoutDashboard, Users, GraduationCap, CalendarCheck, CreditCard, ClipboardList, Bell, Settings, Building, LogOut } from 'lucide-react';
 import { useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 
@@ -28,6 +28,7 @@ export default function Sidebar() {
         menuItems = [
             { path: prefix, label: 'Dashboard', icon: LayoutDashboard },
             { path: `${prefix}/students`, label: 'Students', icon: Users },
+            { path: `${prefix}/teachers`, label: 'Teachers', icon: GraduationCap },
             { path: `${prefix}/attendance`, label: 'Attendance', icon: CalendarCheck },
             { path: `${prefix}/fees`, label: 'Fees', icon: CreditCard },
             { path: `${prefix}/exams`, label: 'Exams', icon: ClipboardList },

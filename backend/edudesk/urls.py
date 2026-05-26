@@ -3,7 +3,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from users.views import UserViewSet, me
+from users.views import UserViewSet, TeacherViewSet, me
 from core.views import SchoolViewSet, ClassViewSet, SectionViewSet, SaaSOnboardingView
 from students.views import StudentViewSet
 from attendance.views import AttendanceViewSet
@@ -13,6 +13,7 @@ from notices.views import NoticeViewSet
 
 router = DefaultRouter()
 router.register(r'users', UserViewSet)
+router.register(r'teachers', TeacherViewSet, basename='teacher')
 router.register(r'schools', SchoolViewSet, basename='school')
 router.register(r'classes', ClassViewSet, basename='class')
 router.register(r'sections', SectionViewSet, basename='section')

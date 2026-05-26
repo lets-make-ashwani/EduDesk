@@ -15,6 +15,7 @@ import StudentDashboard from './pages/StudentDashboard';
 import ManageSchools from './components/ManageSchools';
 import Settings from './pages/Settings';
 import TimeTable from './pages/TimeTable';
+import Teachers from './pages/Teachers';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useContext(AuthContext);
@@ -73,6 +74,7 @@ function App() {
         <Route path="/school-admin" element={<RoleRoute allowedRoles={['SCHOOL_ADMIN', 'admin']}><DashboardLayout /></RoleRoute>}>
           <Route index element={<Dashboard />} />
           <Route path="students" element={<Students />} />
+          <Route path="teachers" element={<Teachers />} />
           <Route path="attendance" element={<Attendance />} />
           <Route path="fees" element={<Fees />} />
           <Route path="exams" element={<Exams />} />
