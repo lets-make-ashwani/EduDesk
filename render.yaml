@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: edudesk-api
+    env: python
+    region: oregon
+    rootDir: backend
+    buildCommand: ./build.sh
+    startCommand: gunicorn edudesk.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --keep-alive 5
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0

@@ -31,41 +31,84 @@ class StudentViewSet(viewsets.ModelViewSet):
         """
         Backfill: generate username + password for every student
         in this school who does not yet have a linked user account.
+        Uses bulk_create for Users to minimise DB round-trips.
         """
         from users.models import User
         from .models import Student as StudentModel
 
-        students_qs = self.get_queryset().filter(user__isnull=True)
+        students_qs = list(
+            self.get_queryset()
+            .filter(user__isnull=True)
+            .select_related('school')
+        )
+
+        if not students_qs:
+            return Response(
+                {"message": "All students already have login credentials.", "errors": []},
+                status=status.HTTP_200_OK,
+            )
+
         created = 0
         errors = []
+        CHUNK = 50   # process 50 students at a time
 
-        for student in students_qs:
+        # Pre-load all existing usernames once to avoid repeated DB hits
+        existing_usernames = set(User.objects.values_list('username', flat=True))
+
+        for i in range(0, len(students_qs), CHUNK):
+            chunk = students_qs[i : i + CHUNK]
+            users_to_create = []
+            plan = []   # (student, username, password)
+
+            for student in chunk:
+                try:
+                    base = StudentModel._make_username(student.name)
+                    username = base
+                    counter = 1
+                    while username in existing_usernames:
+                        username = f"{base}{counter}"
+                        counter += 1
+                    existing_usernames.add(username)   # reserve it locally
+
+                    password = StudentModel._make_password()
+
+                    u = User(
+                        username=username,
+                        email=f"{username}@school.com",
+                        role='student',
+                        school=student.school,
+                    )
+                    u.set_password(password)
+                    users_to_create.append(u)
+                    plan.append((student, username, password))
+                except Exception as e:
+                    errors.append(f"Student '{student.name}' (id={student.id}): {str(e)}")
+
+            # Single bulk insert for the whole chunk
             try:
-                # Build unique username from name
-                base_username = StudentModel._make_username(student.name)
-                username = base_username
-                counter = 1
-                while User.objects.filter(username=username).exists():
-                    username = f"{base_username}{counter}"
-                    counter += 1
-
-                password = StudentModel._make_password()
-
-                user = User.objects.create_user(
-                    username=username,
-                    email=f"{username}@school.com",
-                    role='student',
-                    school=student.school,
-                )
-                user.set_password(password)
-                user.save()
-
-                student.user = user
-                student.temp_password = password
-                student.save(update_fields=['user', 'temp_password'])
-                created += 1
+                User.objects.bulk_create(users_to_create, ignore_conflicts=True)
             except Exception as e:
-                errors.append(f"Student '{student.name}' (id={student.id}): {str(e)}")
+                errors.append(f"Bulk create error for chunk {i}-{i+CHUNK}: {str(e)}")
+                continue
+
+            # Fetch the newly created users by username
+            usernames_in_chunk = [u.username for u in users_to_create]
+            created_users = {u.username: u for u in User.objects.filter(username__in=usernames_in_chunk)}
+
+            # Link users back to students
+            students_to_update = []
+            for student, username, password in plan:
+                user_obj = created_users.get(username)
+                if user_obj:
+                    student.user = user_obj
+                    student.temp_password = password
+                    students_to_update.append(student)
+                    created += 1
+                else:
+                    errors.append(f"Could not find created user '{username}' for student '{student.name}'")
+
+            if students_to_update:
+                Student.objects.bulk_update(students_to_update, ['user', 'temp_password'])
 
         return Response(
             {
