@@ -5,6 +5,8 @@ from .serializers import UserSerializer
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 
+from rest_framework.exceptions import PermissionDenied
+
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.none()
     serializer_class = UserSerializer
@@ -13,18 +15,30 @@ class UserViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         user = self.request.user
         if user.is_superuser or user.role == 'SUPERADMIN':
-            return User.objects.all()
+            return User.objects.select_related('school').all()
         if user.school:
             # Exclude superadmins and return only users within the same school
-            return User.objects.filter(school=user.school).exclude(role='SUPERADMIN')
+            return User.objects.select_related('school').filter(school=user.school).exclude(role='SUPERADMIN')
         return User.objects.none()
 
     def perform_create(self, serializer):
         user = self.request.user
+        requested_role = self.request.data.get('role')
+        if requested_role == 'SUPERADMIN' and user.role != 'SUPERADMIN' and not user.is_superuser:
+            raise PermissionDenied("You are not authorized to create SUPERADMIN users.")
+            
         if user.role != 'SUPERADMIN' and user.school:
             serializer.save(school=user.school)
         else:
             serializer.save()
+
+    def perform_update(self, serializer):
+        user = self.request.user
+        requested_role = self.request.data.get('role')
+        if requested_role == 'SUPERADMIN' and user.role != 'SUPERADMIN' and not user.is_superuser:
+            raise PermissionDenied("You are not authorized to update a user to SUPERADMIN.")
+            
+        serializer.save()
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
