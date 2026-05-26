@@ -26,6 +26,55 @@ class StudentViewSet(viewsets.ModelViewSet):
         else:
             serializer.save()
 
+    @action(detail=False, methods=['post'])
+    def generate_credentials(self, request):
+        """
+        Backfill: generate username + password for every student
+        in this school who does not yet have a linked user account.
+        """
+        from users.models import User
+        from .models import Student as StudentModel
+
+        students_qs = self.get_queryset().filter(user__isnull=True)
+        created = 0
+        errors = []
+
+        for student in students_qs:
+            try:
+                # Build unique username from name
+                base_username = StudentModel._make_username(student.name)
+                username = base_username
+                counter = 1
+                while User.objects.filter(username=username).exists():
+                    username = f"{base_username}{counter}"
+                    counter += 1
+
+                password = StudentModel._make_password()
+
+                user = User.objects.create_user(
+                    username=username,
+                    email=f"{username}@school.com",
+                    role='student',
+                    school=student.school,
+                )
+                user.set_password(password)
+                user.save()
+
+                student.user = user
+                student.temp_password = password
+                student.save(update_fields=['user', 'temp_password'])
+                created += 1
+            except Exception as e:
+                errors.append(f"Student '{student.name}' (id={student.id}): {str(e)}")
+
+        return Response(
+            {
+                "message": f"Generated credentials for {created} student(s).",
+                "errors": errors,
+            },
+            status=status.HTTP_200_OK,
+        )
+
     @action(detail=False, methods=['delete'])
     def delete_all(self, request):
         count, _ = self.get_queryset().delete()

@@ -344,6 +344,23 @@ export default function Students() {
         }
     };
 
+    const handleGenerateCredentials = async () => {
+        setDropdownOpen(false);
+        if (!window.confirm("This will generate username & password for all students who don't have login credentials yet. Continue?")) return;
+        try {
+            const res = await api.post('students/generate_credentials/');
+            const { message, errors } = res.data;
+            if (errors && errors.length > 0) {
+                alert(`${message}\n\nErrors:\n${errors.join('\n')}`);
+            } else {
+                alert(`✅ ${message}`);
+            }
+            fetchData();
+        } catch (err) {
+            alert('Error generating credentials: ' + (err.response?.data?.error || err.message));
+        }
+    };
+
     const handleBulkSubmit = async (e) => {
         e.preventDefault();
         setBulkErrors(null);
@@ -443,6 +460,7 @@ export default function Students() {
                         <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 border border-gray-100">
                             <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={() => { setIsSingleModalOpen(true); setDropdownOpen(false); }}>Add Single Student</button>
                             <button className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={() => { setIsBulkModalOpen(true); setDropdownOpen(false); }}>Bulk Import (CSV)</button>
+                            <button className="block w-full text-left px-4 py-2 text-sm text-green-700 font-medium hover:bg-green-50" onClick={handleGenerateCredentials}>🔑 Generate Missing Credentials</button>
                             <div className="border-t border-gray-100 my-1"></div>
                             <button className="block w-full text-left px-4 py-2 text-sm text-red-600 font-medium hover:bg-red-50 hover:text-red-700" onClick={() => { handleDeleteAllClick(); setDropdownOpen(false); }}>⚠️ Delete All Students</button>
                         </div>

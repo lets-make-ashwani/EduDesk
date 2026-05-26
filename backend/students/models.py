@@ -25,35 +25,39 @@ class Student(models.Model):
 
     def __str__(self): return f"{self.name} ({self.student_class.name} {self.section.name})"
 
+    @staticmethod
+    def _make_username(name):
+        """Build a clean username from a student's name, e.g. 'Rohit Kumar' -> 'rohit_kumar'."""
+        import re
+        parts = re.split(r'\s+', name.strip())
+        cleaned = [re.sub(r'[^a-z0-9]', '', p.lower()) for p in parts]
+        cleaned = [p for p in cleaned if p]  # drop empty parts
+        return '_'.join(cleaned) if cleaned else 'student'
+
+    @staticmethod
+    def _make_password():
+        """Generate a random 8-character alphanumeric password."""
+        import random, string
+        chars = string.ascii_letters + string.digits
+        return ''.join(random.choices(chars, k=8))
+
     def save(self, *args, **kwargs):
         is_new = self.pk is None
         super().save(*args, **kwargs)
         if is_new and not self.user:
             from users.models import User
-            import uuid
-            import random
-            import string
-            
-            username = self.admission_number
-            if not username:
-                clean_name = "".join(c for c in self.name.lower() if c.isalnum())
-                username = f"std_{clean_name}_{uuid.uuid4().hex[:6]}"
-            else:
-                username = "".join(c for c in username.lower() if c.isalnum())
-                
-            base_username = username
+
+            # Build username from student name
+            base_username = Student._make_username(self.name)
+            username = base_username
             counter = 1
             while User.objects.filter(username=username).exists():
                 username = f"{base_username}{counter}"
                 counter += 1
-                
-            # Generate a dynamic unique password for each student (e.g., Name@9034)
-            name_part = "".join(c for c in self.name if c.isalpha())[:4].capitalize()
-            if not name_part:
-                name_part = "Std"
-            random_digits = "".join(random.choices(string.digits, k=4))
-            password = f"{name_part}@{random_digits}"
-                
+
+            # Random 8-char alphanumeric password
+            password = Student._make_password()
+
             user = User.objects.create_user(
                 username=username,
                 email=f"{username}@school.com",
@@ -62,7 +66,7 @@ class Student(models.Model):
             )
             user.set_password(password)
             user.save()
-            
+
             self.user = user
             self.temp_password = password
             super().save(update_fields=['user', 'temp_password'])
