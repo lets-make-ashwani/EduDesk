@@ -1,9 +1,12 @@
 import { useState, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
-import { FiBookOpen, FiClock, FiDownload, FiCheckCircle } from 'react-icons/fi';
+import { FiBookOpen, FiClock, FiDownload, FiCheckCircle, FiLogOut } from 'react-icons/fi';
 
 export default function StudentDashboard() {
-    const { user } = useContext(AuthContext);
+    const { user, logout } = useContext(AuthContext);
+    const handleLogout = () => {
+        if (logout) logout();
+    };
 
     // Mock data for UI layout
     const homeworks = [
@@ -13,9 +16,17 @@ export default function StudentDashboard() {
 
     return (
         <div className="p-8 max-w-7xl mx-auto space-y-8 font-sans">
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-8 text-white shadow-lg">
-                <h1 className="text-3xl font-extrabold mb-2">Welcome back, {user?.username}!</h1>
-                <p className="text-blue-100 text-lg">Here's what's happening in your classes today.</p>
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-8 text-white shadow-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h1 className="text-3xl font-extrabold mb-2">Welcome back, {user?.username}!</h1>
+                    <p className="text-blue-100 text-lg">Here's what's happening in your classes today.</p>
+                </div>
+                <button 
+                    onClick={handleLogout}
+                    className="flex items-center px-4 py-2.5 bg-white/10 hover:bg-white/20 active:scale-95 border border-white/20 rounded-xl font-semibold text-white transition duration-200"
+                >
+                    <FiLogOut className="mr-2 text-lg" /> Logout
+                </button>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">

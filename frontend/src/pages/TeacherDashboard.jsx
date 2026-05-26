@@ -15,11 +15,15 @@ import {
     FiGrid,
     FiX,
     FiPaperclip,
-    FiInfo
+    FiInfo,
+    FiLogOut
 } from 'react-icons/fi';
 
 export default function TeacherDashboard() {
-    const { user } = useContext(AuthContext);
+    const { user, logout } = useContext(AuthContext);
+    const handleLogout = () => {
+        if (logout) logout();
+    };
     const [stats, setStats] = useState({ homeworks: 0, materials: 0, classes: 0 });
     const [activeTab, setActiveTab] = useState('overview');
     
@@ -278,6 +282,12 @@ export default function TeacherDashboard() {
                             className="flex items-center px-4 py-2.5 bg-white hover:bg-blue-50 active:scale-95 rounded-xl font-semibold text-indigo-700 transition duration-200 shadow-md"
                         >
                             <FiUpload className="mr-2 text-lg" /> Upload Material
+                        </button>
+                        <button 
+                            onClick={handleLogout}
+                            className="flex items-center px-4 py-2.5 bg-red-500/25 hover:bg-red-500/40 active:scale-95 border border-red-500/30 rounded-xl font-semibold text-red-100 hover:text-white transition duration-200 shadow-md"
+                        >
+                            <FiLogOut className="mr-2 text-lg" /> Logout
                         </button>
                     </div>
                 </div>
