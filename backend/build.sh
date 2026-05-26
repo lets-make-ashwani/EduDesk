@@ -20,6 +20,11 @@ try:
 except: pass"
 
 python manage.py makemigrations --noinput || true
+
+# Force-fake users 0003 since the schema was manually updated in production
+python manage.py migrate users 0003 --fake || true
+
+# Run remaining migrations
 python manage.py migrate || true
 
 # Automatically create superuser (fails gracefully if it already exists)
