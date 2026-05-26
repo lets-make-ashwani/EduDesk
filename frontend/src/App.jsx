@@ -13,6 +13,7 @@ import ManageUsers from './pages/ManageUsers';
 import TeacherDashboard from './pages/TeacherDashboard';
 import StudentDashboard from './pages/StudentDashboard';
 import ManageSchools from './components/ManageSchools';
+import Settings from './pages/Settings';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useContext(AuthContext);
@@ -63,7 +64,8 @@ function App() {
           <Route index element={<Dashboard />} />
           <Route path="schools" element={<ManageSchools />} /> 
           <Route path="users" element={<ManageUsers />} />
-          <Route path="settings" element={<Dashboard />} />
+          <Route path="settings" element={<Settings />} />
+          
         </Route>
 
         {/* School Admin Routes (New B2B Client Role) */}
