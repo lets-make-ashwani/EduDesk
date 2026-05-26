@@ -2,6 +2,190 @@ import { useEffect, useState, useContext } from 'react';
 import api from '../lib/axios';
 import { AuthContext } from '../context/AuthContext';
 
+// ─── Student Profile Modal ────────────────────────────────────────────────────
+function StudentProfileModal({ student, schools, classes, sections, onClose, onEdit }) {
+    if (!student) return null;
+
+    const getInitials = (name) => name ? name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : '??';
+    const getAvatarColor = (name) => {
+        const colors = [
+            ['#6366f1', '#818cf8'], ['#8b5cf6', '#a78bfa'], ['#ec4899', '#f472b6'],
+            ['#14b8a6', '#2dd4bf'], ['#f59e0b', '#fbbf24'], ['#10b981', '#34d399'],
+            ['#3b82f6', '#60a5fa'], ['#ef4444', '#f87171'],
+        ];
+        const idx = (name?.charCodeAt(0) || 0) % colors.length;
+        return colors[idx];
+    };
+
+    const [from, to] = getAvatarColor(student.name);
+
+    const schoolName  = schools.find(s => s.id === student.school)?.name  || student.school_name  || '—';
+    const className   = classes.find(c => c.id === student.student_class)?.name || student.class_name   || '—';
+    const sectionName = sections.find(s => s.id === student.section)?.name || student.section_name || '—';
+
+    const InfoRow = ({ icon, label, value }) => (
+        <div className="flex items-start gap-3 py-2.5 border-b border-gray-100 last:border-0">
+            <span className="text-lg mt-0.5">{icon}</span>
+            <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">{label}</p>
+                <p className="text-sm font-semibold text-gray-800 mt-0.5 truncate">{value || <span className="text-gray-400 font-normal italic">Not provided</span>}</p>
+            </div>
+        </div>
+    );
+
+    return (
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(4px)' }}
+            onClick={onClose}
+        >
+            <div
+                className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col"
+                style={{ animation: 'slideUp 0.25s ease-out' }}
+                onClick={e => e.stopPropagation()}
+            >
+                {/* ── Header / Hero ── */}
+                <div className="relative flex-shrink-0" style={{ background: `linear-gradient(135deg, ${from}, ${to})`, padding: '32px 28px 24px' }}>
+                    {/* Close btn */}
+                    <button
+                        onClick={onClose}
+                        className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-colors text-lg font-bold"
+                    >
+                        ×
+                    </button>
+
+                    {/* Avatar + name */}
+                    <div className="flex items-end gap-5">
+                        <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-extrabold text-white shadow-lg flex-shrink-0"
+                            style={{ background: 'rgba(255,255,255,0.25)', border: '3px solid rgba(255,255,255,0.5)' }}>
+                            {getInitials(student.name)}
+                        </div>
+                        <div className="text-white">
+                            <h2 className="text-2xl font-extrabold leading-tight drop-shadow">{student.name}</h2>
+                            <div className="flex flex-wrap gap-2 mt-2">
+                                <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: 'rgba(255,255,255,0.25)' }}>
+                                    {student.gender || 'Unknown Gender'}
+                                </span>
+                                {student.blood_group && (
+                                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: 'rgba(255,255,255,0.25)' }}>
+                                        🩸 {student.blood_group}
+                                    </span>
+                                )}
+                                {student.age && (
+                                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: 'rgba(255,255,255,0.25)' }}>
+                                        Age: {student.age}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Class badge row */}
+                    <div className="flex flex-wrap gap-3 mt-4">
+                        <div className="flex items-center gap-1.5 text-white text-xs font-semibold" style={{ background: 'rgba(255,255,255,0.18)', borderRadius: 8, padding: '5px 10px' }}>
+                            🏫 {schoolName}
+                        </div>
+                        <div className="flex items-center gap-1.5 text-white text-xs font-semibold" style={{ background: 'rgba(255,255,255,0.18)', borderRadius: 8, padding: '5px 10px' }}>
+                            📚 Class {className} — Section {sectionName}
+                        </div>
+                        {student.roll_number && (
+                            <div className="flex items-center gap-1.5 text-white text-xs font-semibold" style={{ background: 'rgba(255,255,255,0.18)', borderRadius: 8, padding: '5px 10px' }}>
+                                🎫 Roll #{student.roll_number}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {/* ── Body ── */}
+                <div className="overflow-y-auto flex-1 p-6 space-y-5">
+
+                    {/* Login Credentials */}
+                    {student.username && (
+                        <div className="rounded-xl p-4 border" style={{ background: 'linear-gradient(135deg, #eff6ff, #eef2ff)', borderColor: '#bfdbfe' }}>
+                            <h3 className="text-xs font-bold uppercase tracking-widest text-blue-600 mb-3">🔐 Login Credentials</h3>
+                            <div className="flex flex-wrap gap-4">
+                                <div>
+                                    <p className="text-xs text-gray-500 mb-1">Username</p>
+                                    <span className="font-mono text-sm font-bold text-blue-700 bg-blue-100 px-3 py-1 rounded-lg">{student.username}</span>
+                                </div>
+                                <div>
+                                    <p className="text-xs text-gray-500 mb-1">Password</p>
+                                    <span className="font-mono text-sm font-bold text-indigo-700 bg-indigo-100 px-3 py-1 rounded-lg">{student.temp_password || '••••••••'}</span>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        {/* Personal Info */}
+                        <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                            <h3 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">👤 Personal Information</h3>
+                            <InfoRow icon="📋" label="Admission No." value={student.admission_number} />
+                            <InfoRow icon="📅" label="Admission Date" value={student.admission_date} />
+                            <InfoRow icon="⚧" label="Gender" value={student.gender} />
+                            <InfoRow icon="🎂" label="Age" value={student.age ? `${student.age} years` : null} />
+                            <InfoRow icon="🩸" label="Blood Group" value={student.blood_group} />
+                        </div>
+
+                        {/* Family Info */}
+                        <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                            <h3 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">👨‍👩‍👧 Family Information</h3>
+                            <InfoRow icon="👨" label="Father's Name" value={student.father_name} />
+                            <InfoRow icon="👩" label="Mother's Name" value={student.mother_name} />
+                            <InfoRow icon="📞" label="Parent Phone" value={student.parent_phone} />
+                            <InfoRow icon="📱" label="Alt. Contact" value={student.contact_number} />
+                        </div>
+
+                        {/* Academic Info */}
+                        <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                            <h3 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">🎓 Academic Placement</h3>
+                            <InfoRow icon="🏫" label="School" value={schoolName} />
+                            <InfoRow icon="📚" label="Class" value={className} />
+                            <InfoRow icon="🔠" label="Section" value={sectionName} />
+                            <InfoRow icon="🎫" label="Roll Number" value={student.roll_number} />
+                        </div>
+
+                        {/* ID Numbers */}
+                        <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                            <h3 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">🪪 ID & Documents</h3>
+                            <InfoRow icon="🆔" label="Aadhar Number" value={student.aadhar_number} />
+                            <InfoRow icon="📄" label="APAAR Number" value={student.apaar_number} />
+                        </div>
+                    </div>
+                </div>
+
+                {/* ── Footer actions ── */}
+                <div className="flex-shrink-0 flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50">
+                    <p className="text-xs text-gray-400">Student ID: #{student.id}</p>
+                    <div className="flex gap-3">
+                        <button
+                            onClick={onClose}
+                            className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 hover:bg-gray-100 rounded-lg transition"
+                        >
+                            Close
+                        </button>
+                        <button
+                            onClick={() => { onClose(); onEdit(student); }}
+                            className="px-4 py-2 text-sm font-semibold text-white rounded-lg transition"
+                            style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
+                        >
+                            ✏️ Edit Student
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <style>{`
+                @keyframes slideUp {
+                    from { opacity: 0; transform: translateY(30px) scale(0.97); }
+                    to   { opacity: 1; transform: translateY(0) scale(1); }
+                }
+            `}</style>
+        </div>
+    );
+}
+
+// ─── Main Students Page ───────────────────────────────────────────────────────
 export default function Students() {
     const { user } = useContext(AuthContext);
     const [students, setStudents] = useState([]);
@@ -18,6 +202,9 @@ export default function Students() {
     const [csvFile, setCsvFile] = useState(null);
     const [formErrors, setFormErrors] = useState(null);
     const [bulkErrors, setBulkErrors] = useState(null);
+
+    // Profile modal state
+    const [profileStudent, setProfileStudent] = useState(null);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -54,7 +241,6 @@ export default function Students() {
             setClasses(classesRes.data);
             setSections(sectionsRes.data);
 
-            // Set defaults for the form if data exists
             setFormData(prev => ({
                 ...prev,
                 school: schoolsRes.data.length > 0 ? schoolsRes.data[0].id : '',
@@ -75,7 +261,6 @@ export default function Students() {
     const handleSubmitSingle = async (e) => {
         e.preventDefault();
 
-        // Clean payload for backend (e.g. empty strings for integers should be null)
         const payload = { ...formData };
         if (payload.age === '') payload.age = null;
         if (payload.admission_number === '') payload.admission_number = null;
@@ -101,7 +286,6 @@ export default function Students() {
     const handleEditClick = (student) => {
         setIsEditMode(true);
         setEditingStudentId(student.id);
-        // Map backend representation back to form state, handling nested IDs if needed
         setFormData({
             name: student.name || '',
             parent_phone: student.parent_phone || '',
@@ -173,7 +357,6 @@ export default function Students() {
             const res = await api.post('students/bulk_upload/', data, {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
-            // Handle HTTP 207 Multi-Status or generic successes
             if (res.data.errors && res.data.errors.length > 0) {
                 setBulkErrors(res.data.errors);
             } else {
@@ -185,6 +368,12 @@ export default function Students() {
         } catch (err) {
             setBulkErrors(err.response?.data?.errors || [err.response?.data?.error || 'Unknown error occurred during bulk upload.']);
         }
+    };
+
+    const getInitials = (name) => name ? name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : '??';
+    const getAvatarBg = (name) => {
+        const colors = ['#6366f1','#8b5cf6','#ec4899','#14b8a6','#f59e0b','#10b981','#3b82f6','#ef4444'];
+        return colors[(name?.charCodeAt(0) || 0) % colors.length];
     };
 
     if (loading) {
@@ -225,8 +414,23 @@ export default function Students() {
 
     return (
         <div className="animate-in fade-in duration-500 relative">
+            {/* ── Profile Modal ── */}
+            {profileStudent && (
+                <StudentProfileModal
+                    student={profileStudent}
+                    schools={schools}
+                    classes={classes}
+                    sections={sections}
+                    onClose={() => setProfileStudent(null)}
+                    onEdit={(s) => { setProfileStudent(null); handleEditClick(s); }}
+                />
+            )}
+
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Students Directory</h1>
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Students Directory</h1>
+                    <p className="text-sm text-gray-500 mt-0.5">Click on a student name to view full profile</p>
+                </div>
                 <div className="relative">
                     <button
                         onClick={() => setDropdownOpen(!dropdownOpen)}
@@ -251,8 +455,9 @@ export default function Students() {
                 <div>
                     <h4 className="font-bold text-blue-800 text-sm">Student Access Credentials</h4>
                     <p className="text-blue-700 text-xs mt-1 leading-relaxed">
-                        Every student registered in the system is automatically provisioned a unique login account. 
+                        Every student registered in the system is automatically provisioned a unique login account.
                         Their specific <strong>Login ID</strong> and initial <strong>Password</strong> are shown in the directory table below.
+                        <strong> Click any student's name</strong> to view their full profile.
                     </p>
                 </div>
             </div>
@@ -271,7 +476,11 @@ export default function Students() {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                         {students.map((student) => (
-                            <tr key={student.id} className="hover:bg-gray-50 cursor-pointer">
+                            <tr
+                                key={student.id}
+                                className="hover:bg-indigo-50 transition-colors cursor-pointer group"
+                                onClick={() => setProfileStudent(student)}
+                            >
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="font-medium text-gray-900">{student.admission_number || 'N/A'}</div>
                                     <div className="text-xs text-gray-500">Admitted: {student.admission_date}</div>
@@ -286,9 +495,22 @@ export default function Students() {
                                         <span className="text-gray-400 italic text-xs">No account linked</span>
                                     )}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-gray-600">
-                                    <div className="font-bold text-gray-800">{student.name}</div>
-                                    <div className="text-xs text-gray-500">{student.gender || 'Unknown'} | {student.blood_group || 'No BG'}</div>
+                                {/* Clickable student name cell with avatar */}
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="flex items-center gap-3">
+                                        <div
+                                            className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 shadow-sm group-hover:scale-110 transition-transform"
+                                            style={{ background: getAvatarBg(student.name) }}
+                                        >
+                                            {getInitials(student.name)}
+                                        </div>
+                                        <div>
+                                            <div className="font-bold text-gray-800 group-hover:text-indigo-600 transition-colors underline-offset-2 group-hover:underline">
+                                                {student.name}
+                                            </div>
+                                            <div className="text-xs text-gray-500">{student.gender || 'Unknown'} | {student.blood_group || 'No BG'}</div>
+                                        </div>
+                                    </div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-gray-600">
                                     <div className="font-medium">{student.class_name} - {student.section_name}</div>
