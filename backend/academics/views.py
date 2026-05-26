@@ -15,9 +15,15 @@ class ClassSubjectViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
+        if user.role == 'SUPERADMIN':
+            return ClassSubject.objects.all()
+        if not user.school:
+            return ClassSubject.objects.none()
+            
+        qs = ClassSubject.objects.filter(school_class__school=user.school)
         if user.role == 'teacher':
-            return ClassSubject.objects.filter(teacher=user)
-        return ClassSubject.objects.all()
+            return qs.filter(teacher=user)
+        return qs
 
 class HomeworkViewSet(viewsets.ModelViewSet):
     queryset = Homework.objects.all()
@@ -26,9 +32,15 @@ class HomeworkViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
+        if user.role == 'SUPERADMIN':
+            return Homework.objects.all()
+        if not user.school:
+            return Homework.objects.none()
+            
+        qs = Homework.objects.filter(class_subject__school_class__school=user.school)
         if user.role == 'teacher':
-            return Homework.objects.filter(class_subject__teacher=user)
-        return Homework.objects.all()
+            return qs.filter(class_subject__teacher=user)
+        return qs
 
     def perform_create(self, serializer):
         homework = serializer.save(created_by=self.request.user)
@@ -62,9 +74,15 @@ class StudyMaterialViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
+        if user.role == 'SUPERADMIN':
+            return StudyMaterial.objects.all()
+        if not user.school:
+            return StudyMaterial.objects.none()
+            
+        qs = StudyMaterial.objects.filter(class_subject__school_class__school=user.school)
         if user.role == 'teacher':
-            return StudyMaterial.objects.filter(class_subject__teacher=user)
-        return StudyMaterial.objects.all()
+            return qs.filter(class_subject__teacher=user)
+        return qs
 
     def perform_create(self, serializer):
         serializer.save(uploaded_by=self.request.user)

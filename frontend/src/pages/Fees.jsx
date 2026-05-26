@@ -159,7 +159,7 @@ export default function Fees() {
                 <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Fee Management</h1>
 
                 <div className="flex space-x-3">
-                    {user?.role === 'Admin' && (
+                    {['Admin', 'admin', 'SCHOOL_ADMIN'].includes(user?.role) && (
                         <div className="flex bg-gray-100 p-1 rounded-lg">
                             <button onClick={() => setActiveTab('payments')} className={`px-4 py-2 text-sm font-medium rounded-md transition ${activeTab === 'payments' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}>Payments</button>
                             <button onClick={() => setActiveTab('structures')} className={`px-4 py-2 text-sm font-medium rounded-md transition ${activeTab === 'structures' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}>Fee Structures</button>
@@ -227,7 +227,7 @@ export default function Fees() {
                 </div>
             )}
 
-            {activeTab === 'structures' && user?.role === 'Admin' && (
+            {activeTab === 'structures' && ['Admin', 'admin', 'SCHOOL_ADMIN'].includes(user?.role) && (
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mt-6">
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">

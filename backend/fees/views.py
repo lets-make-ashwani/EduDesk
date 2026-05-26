@@ -8,17 +8,41 @@ class FeeStructureViewSet(viewsets.ModelViewSet):
     queryset = FeeStructure.objects.all()
     serializer_class = FeeStructureSerializer
 
+    def get_queryset(self):
+        user = self.request.user
+        if user.role == 'SUPERADMIN':
+            return FeeStructure.objects.all()
+        if user.school:
+            return FeeStructure.objects.filter(school_class__school=user.school)
+        return FeeStructure.objects.none()
+
 class FeeViewSet(viewsets.ModelViewSet):
     queryset = Fee.objects.all()
     serializer_class = FeeSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.role == 'SUPERADMIN':
+            return Fee.objects.all()
+        if user.school:
+            return Fee.objects.filter(school_class__school=user.school)
+        return Fee.objects.none()
 
 class PaymentViewSet(viewsets.ModelViewSet):
     queryset = Payment.objects.all()
     serializer_class = PaymentSerializer
 
+    def get_queryset(self):
+        user = self.request.user
+        if user.role == 'SUPERADMIN':
+            return Payment.objects.all()
+        if user.school:
+            return Payment.objects.filter(student__school=user.school)
+        return Payment.objects.none()
+
     @action(detail=False, methods=['get'])
     def due(self, request):
-        due_payments = Payment.objects.filter(status='Unpaid')
+        due_payments = self.get_queryset().filter(status='Unpaid')
         serializer = self.get_serializer(due_payments, many=True)
         return Response(serializer.data)
 

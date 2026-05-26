@@ -14,6 +14,8 @@ export default function Attendance() {
             const initial = {};
             res.data.forEach(s => { initial[s.id] = 'Present' });
             setAttendanceData(initial);
+        }).catch(err => {
+            console.error("Error fetching students:", err);
         }).finally(() => {
             setLoading(false);
         });

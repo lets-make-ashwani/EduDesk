@@ -18,9 +18,16 @@ class StudentViewSet(viewsets.ModelViewSet):
             return Student.objects.filter(school=user.school)
         return Student.objects.none()
 
+    def perform_create(self, serializer):
+        user = self.request.user
+        if user.role != 'SUPERADMIN':
+            serializer.save(school=user.school)
+        else:
+            serializer.save()
+
     @action(detail=False, methods=['delete'])
     def delete_all(self, request):
-        count, _ = Student.objects.all().delete()
+        count, _ = self.get_queryset().delete()
         return Response({"message": f"Successfully deleted {count} students."}, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['post'])
@@ -43,15 +50,19 @@ class StudentViewSet(viewsets.ModelViewSet):
         # Trim whitespace from headers
         reader.fieldnames = [str(field).strip() for field in reader.fieldnames]
 
-        school_id = request.data.get('school_id')
-
-        if not school_id:
-            return Response({"error": "School ID must be provided"}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            school = School.objects.get(id=school_id)
-        except Exception as e:
-            return Response({"error": "Invalid School ID"}, status=status.HTTP_400_BAD_REQUEST)
+        user = request.user
+        if user.role == 'SUPERADMIN':
+            school_id = request.data.get('school_id')
+            if not school_id:
+                return Response({"error": "School ID must be provided"}, status=status.HTTP_400_BAD_REQUEST)
+            try:
+                school = School.objects.get(id=school_id)
+            except Exception as e:
+                return Response({"error": "Invalid School ID"}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            school = user.school
+            if not school:
+                return Response({"error": "User is not associated with any school"}, status=status.HTTP_400_BAD_REQUEST)
 
         students_created = 0
         errors = []

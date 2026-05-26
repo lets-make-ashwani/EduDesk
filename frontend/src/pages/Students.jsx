@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useContext } from 'react';
 import api from '../lib/axios';
+import { AuthContext } from '../context/AuthContext';
 
 export default function Students() {
+    const { user } = useContext(AuthContext);
     const [students, setStudents] = useState([]);
     const [schools, setSchools] = useState([]);
     const [classes, setClasses] = useState([]);
@@ -361,13 +363,15 @@ export default function Students() {
                             <h3 className="font-semibold text-gray-800">Academic Placement</h3>
 
                             <div className="grid grid-cols-3 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700">School *</label>
-                                    <select required name="school" value={formData.school} onChange={handleInputChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm px-3 py-2 border">
-                                        <option value="">Select...</option>
-                                        {schools.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                                    </select>
-                                </div>
+                                {user?.role === 'SUPERADMIN' && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700">School *</label>
+                                        <select required name="school" value={formData.school} onChange={handleInputChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm px-3 py-2 border">
+                                            <option value="">Select...</option>
+                                            {schools.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                        </select>
+                                    </div>
+                                )}
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700">Class *</label>
                                     <select required name="student_class" value={formData.student_class} onChange={handleInputChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm sm:text-sm px-3 py-2 border">
@@ -423,13 +427,15 @@ export default function Students() {
                         )}
 
                         <form onSubmit={handleBulkSubmit} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Target School *</label>
-                                <select required name="school" value={formData.school} onChange={handleInputChange} className="w-full rounded-md sm:text-sm px-3 py-2 border">
-                                    <option value="">Select Target School...</option>
-                                    {schools.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                                </select>
-                            </div>
+                            {user?.role === 'SUPERADMIN' && (
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Target School *</label>
+                                    <select required name="school" value={formData.school} onChange={handleInputChange} className="w-full rounded-md sm:text-sm px-3 py-2 border">
+                                        <option value="">Select Target School...</option>
+                                        {schools.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                                    </select>
+                                </div>
+                            )}
                             <div className="mt-4">
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Upload CSV File *</label>
                                 <input required type="file" accept=".csv" onChange={(e) => setCsvFile(e.target.files[0])} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
