@@ -2,8 +2,130 @@ import { useState, useEffect, useContext } from 'react';
 import api from '../lib/axios';
 import { AuthContext } from '../context/AuthContext';
 
+// ─── Teacher Profile Modal ────────────────────────────────────────────────────
+function TeacherProfileModal({ teacher, onClose, onEdit }) {
+    if (!teacher) return null;
+
+    const getInitials = (name) => name ? name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : '??';
+    const getAvatarColor = (name) => {
+        const colors = [
+            ['#3b82f6', '#60a5fa'], ['#6366f1', '#818cf8'], ['#8b5cf6', '#a78bfa'],
+            ['#ec4899', '#f472b6'], ['#14b8a6', '#2dd4bf'], ['#10b981', '#34d399'],
+            ['#f59e0b', '#fbbf24'], ['#ef4444', '#f87171']
+        ];
+        const idx = (name?.charCodeAt(0) || 0) % colors.length;
+        return colors[idx];
+    };
+
+    const [from, to] = getAvatarColor(teacher.username);
+
+    const InfoRow = ({ icon, label, value }) => (
+        <div className="flex items-start gap-3 py-2.5 border-b border-gray-100 last:border-0">
+            <span className="text-lg mt-0.5">{icon}</span>
+            <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">{label}</p>
+                <p className="text-sm font-semibold text-gray-800 mt-0.5 truncate">{value || <span className="text-gray-400 font-normal italic">Not provided</span>}</p>
+            </div>
+        </div>
+    );
+
+    return (
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ background: 'rgba(15, 23, 42, 0.7)', backdropFilter: 'blur(4px)' }}
+            onClick={onClose}
+        >
+            <div
+                className="bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[90vh] overflow-hidden flex flex-col"
+                style={{ animation: 'slideUp 0.25s ease-out' }}
+                onClick={e => e.stopPropagation()}
+            >
+                {/* ── Header / Hero ── */}
+                <div className="relative flex-shrink-0" style={{ background: `linear-gradient(135deg, ${from}, ${to})`, padding: '32px 28px 24px' }}>
+                    {/* Close btn */}
+                    <button
+                        onClick={onClose}
+                        className="absolute top-4 right-4 w-8 h-8 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-colors text-lg font-bold"
+                    >
+                        ×
+                    </button>
+
+                    {/* Avatar + name */}
+                    <div className="flex items-end gap-5">
+                        <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-extrabold text-white shadow-lg flex-shrink-0"
+                            style={{ background: 'rgba(255,255,255,0.25)', border: '3px solid rgba(255,255,255,0.5)' }}>
+                            {getInitials(teacher.username)}
+                        </div>
+                        <div className="text-white">
+                            <h2 className="text-2xl font-extrabold leading-tight drop-shadow">{teacher.username}</h2>
+                            <div className="flex flex-wrap gap-2 mt-2">
+                                <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ background: 'rgba(255,255,255,0.25)' }}>
+                                    🎓 Teacher
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* ── Body ── */}
+                <div className="overflow-y-auto flex-1 p-6 space-y-5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        {/* Personal & Contact Info */}
+                        <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                            <h3 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">👤 Personal & Contact</h3>
+                            <InfoRow icon="📧" label="Email Address" value={teacher.email} />
+                            <InfoRow icon="📞" label="Phone Number" value={teacher.phone} />
+                        </div>
+
+                        {/* Professional Info */}
+                        <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                            <h3 className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-2">💼 Professional</h3>
+                            <InfoRow icon="🏫" label="School" value={teacher.school_name || '—'} />
+                            <InfoRow icon="📜" label="Qualification" value={teacher.qualification} />
+                        </div>
+                    </div>
+                </div>
+
+                {/* ── Footer actions ── */}
+                <div className="flex-shrink-0 flex items-center justify-between px-6 py-4 border-t border-gray-100 bg-gray-50">
+                    <p className="text-xs text-gray-400">Teacher ID: #{teacher.id}</p>
+                    <div className="flex gap-3">
+                        <button
+                            onClick={onClose}
+                            className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 hover:bg-gray-100 rounded-lg transition"
+                        >
+                            Close
+                        </button>
+                        <button
+                            onClick={() => { onClose(); onEdit(teacher); }}
+                            className="px-4 py-2 text-sm font-semibold text-white rounded-lg transition"
+                            style={{ background: 'linear-gradient(135deg, #3b82f6, #6366f1)' }}
+                        >
+                            ✏️ Edit Teacher
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <style>{`
+                @keyframes slideUp {
+                    from { opacity: 0; transform: translateY(30px) scale(0.97); }
+                    to   { opacity: 1; transform: translateY(0) scale(1); }
+                }
+            `}</style>
+        </div>
+    );
+}
+
 export default function Teachers() {
     const { user: currentUser } = useContext(AuthContext);
+    const [profileTeacher, setProfileTeacher] = useState(null);
+
+    const getInitials = (name) => name ? name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : '??';
+    const getAvatarBg = (name) => {
+        const colors = ['#3b82f6', '#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#14b8a6', '#ef4444'];
+        return colors[(name?.charCodeAt(0) || 0) % colors.length];
+    };
     const [teachers, setTeachers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -128,9 +250,21 @@ export default function Teachers() {
     }
 
     return (
-        <div className="animate-in fade-in duration-500">
+        <div className="animate-in fade-in duration-500 relative">
+            {/* ── Profile Modal ── */}
+            {profileTeacher && (
+                <TeacherProfileModal
+                    teacher={profileTeacher}
+                    onClose={() => setProfileTeacher(null)}
+                    onEdit={(t) => { setProfileTeacher(null); handleEditClick(t); }}
+                />
+            )}
+
             <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Teachers Directory</h1>
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Teachers Directory</h1>
+                    <p className="text-sm text-gray-500 mt-0.5">Click on a teacher name to view full profile</p>
+                </div>
                 <button
                     onClick={() => { setIsEditMode(false); setIsModalOpen(true); }}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium shadow-sm transition flex items-center"
@@ -162,13 +296,29 @@ export default function Teachers() {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                         {filteredTeachers.map((teacher, index) => (
-                            <tr key={teacher.id} className="hover:bg-gray-50">
+                            <tr
+                                key={teacher.id}
+                                className="hover:bg-blue-50 transition-colors cursor-pointer group"
+                                onClick={() => setProfileTeacher(teacher)}
+                            >
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     {index + 1}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-gray-600">
-                                    <div className="font-bold text-gray-800">{teacher.username}</div>
-                                    <div className="text-xs text-gray-500">{teacher.email || 'No Email'}</div>
+                                <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="flex items-center gap-3">
+                                        <div
+                                            className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 shadow-sm group-hover:scale-110 transition-transform"
+                                            style={{ background: getAvatarBg(teacher.username) }}
+                                        >
+                                            {getInitials(teacher.username)}
+                                        </div>
+                                        <div>
+                                            <div className="font-bold text-gray-800 group-hover:text-blue-600 transition-colors underline-offset-2 group-hover:underline">
+                                                {teacher.username}
+                                            </div>
+                                            <div className="text-xs text-gray-500">{teacher.email || 'No Email'}</div>
+                                        </div>
+                                    </div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-gray-600 text-sm">
                                     {teacher.qualification || <span className="text-gray-400 italic">Not set</span>}
@@ -177,8 +327,8 @@ export default function Teachers() {
                                     {teacher.phone || <span className="text-gray-400 italic">Not set</span>}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <button onClick={() => handleEditClick(teacher)} className="text-blue-600 hover:text-blue-900 mr-4">Edit</button>
-                                    <button onClick={() => handleDeleteClick(teacher.id, teacher.username)} className="text-red-600 hover:text-red-900">Delete</button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleEditClick(teacher); }} className="text-blue-600 hover:text-blue-900 mr-4">Edit</button>
+                                    <button onClick={(e) => { e.stopPropagation(); handleDeleteClick(teacher.id, teacher.username); }} className="text-red-600 hover:text-red-900">Delete</button>
                                 </td>
                             </tr>
                         ))}

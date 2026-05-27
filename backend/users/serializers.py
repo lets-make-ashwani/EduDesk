@@ -27,10 +27,11 @@ class TeacherSerializer(serializers.ModelSerializer):
     phone = serializers.CharField(source='teacher_profile.phone', required=False, allow_blank=True)
     qualification = serializers.CharField(source='teacher_profile.qualification', required=False, allow_blank=True)
     password = serializers.CharField(write_only=True, required=False)
+    school_name = serializers.CharField(source='school.name', read_only=True)
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'phone', 'qualification', 'password')
+        fields = ('id', 'username', 'email', 'phone', 'qualification', 'password', 'school', 'school_name')
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
